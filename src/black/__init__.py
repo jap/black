@@ -54,8 +54,8 @@ try:
 except ImportError:
     if sys.version_info < (3, 8):
         print(
-            "The typed_ast package is not installed.\n"
-            "You can install it with `python3 -m pip install typed-ast`.",
+            'The typed_ast package is not installed.\n'
+            'You can install it with `python3 -m pip install typed-ast`.',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -82,12 +82,12 @@ if TYPE_CHECKING:
     import colorama  # noqa: F401
 
 DEFAULT_LINE_LENGTH = 88
-DEFAULT_EXCLUDES = r"/(\.direnv|\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|venv|\.svn|_build|buck-out|build|dist)/"  # noqa: B950
-DEFAULT_INCLUDES = r"\.pyi?$"
-CACHE_DIR = Path(user_cache_dir("black", version=__version__))
-STDIN_PLACEHOLDER = "__BLACK_STDIN_FILENAME__"
+DEFAULT_EXCLUDES = r'/(\.direnv|\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|venv|\.svn|_build|buck-out|build|dist)/'  # noqa: B950
+DEFAULT_INCLUDES = r'\.pyi?$'
+CACHE_DIR = Path(user_cache_dir('black', version=__version__))
+STDIN_PLACEHOLDER = '__BLACK_STDIN_FILENAME__'
 
-STRING_PREFIX_CHARS: Final = "furbFURB"  # All possible string prefix characters.
+STRING_PREFIX_CHARS: Final = 'furbFURB'  # All possible string prefix characters.
 
 
 # types
@@ -102,13 +102,13 @@ StringID = int
 Priority = int
 Index = int
 LN = Union[Leaf, Node]
-Transformer = Callable[["Line", Collection["Feature"]], Iterator["Line"]]
+Transformer = Callable[['Line', Collection['Feature']], Iterator['Line']]
 Timestamp = float
 FileSize = int
 CacheInfo = Tuple[Timestamp, FileSize]
 Cache = Dict[str, CacheInfo]
 out = partial(click.secho, bold=True, err=True)
-err = partial(click.secho, fg="red", err=True)
+err = partial(click.secho, fg='red', err=True)
 
 pygram.initialize(CACHE_DIR)
 syms = pygram.python_symbols
@@ -134,8 +134,8 @@ class BracketMatchError(KeyError):
     """Raised when an opening bracket is unable to be matched to a closing bracket."""
 
 
-T = TypeVar("T")
-E = TypeVar("E", bound=Exception)
+T = TypeVar('T')
+E = TypeVar('E', bound=Exception)
 
 
 class Ok(Generic[T]):
@@ -172,7 +172,7 @@ class WriteBack(Enum):
     @classmethod
     def from_configuration(
         cls, *, check: bool, diff: bool, color: bool = False
-    ) -> "WriteBack":
+    ) -> 'WriteBack':
         if check and not diff:
             return cls.CHECK
 
@@ -279,19 +279,19 @@ class Mode:
 
     def get_cache_key(self) -> str:
         if self.target_versions:
-            version_str = ",".join(
+            version_str = ','.join(
                 str(version.value)
                 for version in sorted(self.target_versions, key=lambda v: v.value)
             )
         else:
-            version_str = "-"
+            version_str = '-'
         parts = [
             version_str,
             str(self.line_length),
             str(int(self.string_normalization)),
             str(int(self.is_pyi)),
         ]
-        return ".".join(parts)
+        return '.'.join(parts)
 
 
 # Legacy name, left for integrations.
@@ -305,7 +305,7 @@ def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> b
 def find_pyproject_toml(path_search_start: Tuple[str, ...]) -> Optional[str]:
     """Find the absolute filepath to a pyproject.toml if it exists"""
     path_project_root = find_project_root(path_search_start)
-    path_pyproject_toml = path_project_root / "pyproject.toml"
+    path_pyproject_toml = path_project_root / 'pyproject.toml'
     if path_pyproject_toml.is_file():
         return str(path_pyproject_toml)
 
@@ -319,8 +319,8 @@ def parse_pyproject_toml(path_config: str) -> Dict[str, Any]:
     If parsing fails, will raise a toml.TomlDecodeError
     """
     pyproject_toml = toml.load(path_config)
-    config = pyproject_toml.get("tool", {}).get("black", {})
-    return {k.replace("--", "").replace("-", "_"): v for k, v in config.items()}
+    config = pyproject_toml.get('tool', {}).get('black', {})
+    return {k.replace('--', '').replace('-', '_'): v for k, v in config.items()}
 
 
 def read_pyproject_toml(
@@ -332,7 +332,7 @@ def read_pyproject_toml(
     otherwise.
     """
     if not value:
-        value = find_pyproject_toml(ctx.params.get("src", ()))
+        value = find_pyproject_toml(ctx.params.get('src', ()))
         if value is None:
             return None
 
@@ -340,7 +340,7 @@ def read_pyproject_toml(
         config = parse_pyproject_toml(value)
     except (toml.TomlDecodeError, OSError) as e:
         raise click.FileError(
-            filename=value, hint=f"Error reading configuration file: {e}"
+            filename=value, hint=f'Error reading configuration file: {e}'
         )
 
     if not config:
@@ -354,10 +354,10 @@ def read_pyproject_toml(
             for k, v in config.items()
         }
 
-    target_version = config.get("target_version")
+    target_version = config.get('target_version')
     if target_version is not None and not isinstance(target_version, list):
         raise click.BadOptionUsage(
-            "target-version", "Config key target-version must be a list"
+            'target-version', 'Config key target-version must be a list'
         )
 
     default_map: Dict[str, Any] = {}
@@ -388,157 +388,157 @@ def validate_regex(
     try:
         return re_compile_maybe_verbose(value) if value is not None else None
     except re.error:
-        raise click.BadParameter("Not a valid regular expression")
+        raise click.BadParameter('Not a valid regular expression')
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.option("-c", "--code", type=str, help="Format the code passed in as a string.")
+@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.option('-c', '--code', type=str, help='Format the code passed in as a string.')
 @click.option(
-    "-l",
-    "--line-length",
+    '-l',
+    '--line-length',
     type=int,
     default=DEFAULT_LINE_LENGTH,
-    help="How many characters per line to allow.",
+    help='How many characters per line to allow.',
     show_default=True,
 )
 @click.option(
-    "-t",
-    "--target-version",
+    '-t',
+    '--target-version',
     type=click.Choice([v.name.lower() for v in TargetVersion]),
     callback=target_version_option_callback,
     multiple=True,
     help=(
         "Python versions that should be supported by Black's output. [default: per-file"
-        " auto-detection]"
+        ' auto-detection]'
     ),
 )
 @click.option(
-    "--pyi",
+    '--pyi',
     is_flag=True,
     help=(
-        "Format all input files like typing stubs regardless of file extension (useful"
-        " when piping source on standard input)."
+        'Format all input files like typing stubs regardless of file extension (useful'
+        ' when piping source on standard input).'
     ),
 )
 @click.option(
-    "-S",
-    "--skip-string-normalization",
+    '-S',
+    '--skip-string-normalization',
     is_flag=True,
     help="Don't normalize string quotes or prefixes.",
 )
 @click.option(
-    "-C",
-    "--skip-magic-trailing-comma",
+    '-C',
+    '--skip-magic-trailing-comma',
     is_flag=True,
     help="Don't use trailing commas as a reason to split lines.",
 )
 @click.option(
-    "--experimental-string-processing",
+    '--experimental-string-processing',
     is_flag=True,
     hidden=True,
     help=(
-        "Experimental option that performs more normalization on string literals."
-        " Currently disabled because it leads to some crashes."
+        'Experimental option that performs more normalization on string literals.'
+        ' Currently disabled because it leads to some crashes.'
     ),
 )
 @click.option(
-    "--check",
+    '--check',
     is_flag=True,
     help=(
         "Don't write the files back, just return the status. Return code 0 means"
-        " nothing would change. Return code 1 means some files would be reformatted."
-        " Return code 123 means there was an internal error."
+        ' nothing would change. Return code 1 means some files would be reformatted.'
+        ' Return code 123 means there was an internal error.'
     ),
 )
 @click.option(
-    "--diff",
+    '--diff',
     is_flag=True,
     help="Don't write the files back, just output a diff for each file on stdout.",
 )
 @click.option(
-    "--color/--no-color",
+    '--color/--no-color',
     is_flag=True,
-    help="Show colored diff. Only applies when `--diff` is given.",
+    help='Show colored diff. Only applies when `--diff` is given.',
 )
 @click.option(
-    "--fast/--safe",
+    '--fast/--safe',
     is_flag=True,
-    help="If --fast given, skip temporary sanity checks. [default: --safe]",
+    help='If --fast given, skip temporary sanity checks. [default: --safe]',
 )
 @click.option(
-    "--include",
+    '--include',
     type=str,
     default=DEFAULT_INCLUDES,
     callback=validate_regex,
     help=(
-        "A regular expression that matches files and directories that should be"
-        " included on recursive searches. An empty value means all files are included"
-        " regardless of the name. Use forward slashes for directories on all platforms"
-        " (Windows, too). Exclusions are calculated first, inclusions later."
+        'A regular expression that matches files and directories that should be'
+        ' included on recursive searches. An empty value means all files are included'
+        ' regardless of the name. Use forward slashes for directories on all platforms'
+        ' (Windows, too). Exclusions are calculated first, inclusions later.'
     ),
     show_default=True,
 )
 @click.option(
-    "--exclude",
+    '--exclude',
     type=str,
     default=DEFAULT_EXCLUDES,
     callback=validate_regex,
     help=(
-        "A regular expression that matches files and directories that should be"
-        " excluded on recursive searches. An empty value means no paths are excluded."
-        " Use forward slashes for directories on all platforms (Windows, too)."
-        " Exclusions are calculated first, inclusions later."
+        'A regular expression that matches files and directories that should be'
+        ' excluded on recursive searches. An empty value means no paths are excluded.'
+        ' Use forward slashes for directories on all platforms (Windows, too).'
+        ' Exclusions are calculated first, inclusions later.'
     ),
     show_default=True,
 )
 @click.option(
-    "--extend-exclude",
+    '--extend-exclude',
     type=str,
     callback=validate_regex,
     help=(
-        "Like --exclude, but adds additional files and directories on top of the"
-        " excluded ones. (Useful if you simply want to add to the default)"
+        'Like --exclude, but adds additional files and directories on top of the'
+        ' excluded ones. (Useful if you simply want to add to the default)'
     ),
 )
 @click.option(
-    "--force-exclude",
+    '--force-exclude',
     type=str,
     callback=validate_regex,
     help=(
-        "Like --exclude, but files and directories matching this regex will be "
-        "excluded even when they are passed explicitly as arguments."
+        'Like --exclude, but files and directories matching this regex will be '
+        'excluded even when they are passed explicitly as arguments.'
     ),
 )
 @click.option(
-    "--stdin-filename",
+    '--stdin-filename',
     type=str,
     help=(
-        "The name of the file when passing it through stdin. Useful to make "
-        "sure Black will respect --force-exclude option on some "
-        "editors that rely on using stdin."
+        'The name of the file when passing it through stdin. Useful to make '
+        'sure Black will respect --force-exclude option on some '
+        'editors that rely on using stdin.'
     ),
 )
 @click.option(
-    "-q",
-    "--quiet",
+    '-q',
+    '--quiet',
     is_flag=True,
     help=(
         "Don't emit non-error messages to stderr. Errors are still emitted; silence"
-        " those with 2>/dev/null."
+        ' those with 2>/dev/null.'
     ),
 )
 @click.option(
-    "-v",
-    "--verbose",
+    '-v',
+    '--verbose',
     is_flag=True,
     help=(
-        "Also emit messages to stderr about files that were not changed or were ignored"
-        " due to exclusion patterns."
+        'Also emit messages to stderr about files that were not changed or were ignored'
+        ' due to exclusion patterns.'
     ),
 )
 @click.version_option(version=__version__)
 @click.argument(
-    "src",
+    'src',
     nargs=-1,
     type=click.Path(
         exists=True, file_okay=True, dir_okay=True, readable=True, allow_dash=True
@@ -546,7 +546,7 @@ def validate_regex(
     is_eager=True,
 )
 @click.option(
-    "--config",
+    '--config',
     type=click.Path(
         exists=True,
         file_okay=True,
@@ -557,7 +557,7 @@ def validate_regex(
     ),
     is_eager=True,
     callback=read_pyproject_toml,
-    help="Read configuration from FILE path.",
+    help='Read configuration from FILE path.',
 )
 @click.pass_context
 def main(
@@ -599,7 +599,7 @@ def main(
         experimental_string_processing=experimental_string_processing,
     )
     if config and verbose:
-        out(f"Using configuration from {config}.", bold=False, fg="blue")
+        out(f'Using configuration from {config}.', bold=False, fg='blue')
     if code is not None:
         print(format_str(code, mode=mode))
         ctx.exit(0)
@@ -619,7 +619,7 @@ def main(
 
     path_empty(
         sources,
-        "No Python files are present to be formatted. Nothing to do 😴",
+        'No Python files are present to be formatted. Nothing to do 😴',
         quiet,
         verbose,
         ctx,
@@ -639,7 +639,7 @@ def main(
         )
 
     if verbose or not quiet:
-        out("Oh no! 💥 💔 💥" if report.return_code else "All done! ✨ 🍰 ✨")
+        out('Oh no! 💥 💔 💥' if report.return_code else 'All done! ✨ 🍰 ✨')
         click.secho(str(report), err=True)
     ctx.exit(report.return_code)
 
@@ -654,18 +654,18 @@ def get_sources(
     exclude: Pattern[str],
     extend_exclude: Optional[Pattern[str]],
     force_exclude: Optional[Pattern[str]],
-    report: "Report",
+    report: 'Report',
     stdin_filename: Optional[str],
 ) -> Set[Path]:
     """Compute the set of files to be formatted."""
 
     root = find_project_root(src)
     sources: Set[Path] = set()
-    path_empty(src, "No Path provided. Nothing to do 😴", quiet, verbose, ctx)
+    path_empty(src, 'No Path provided. Nothing to do 😴', quiet, verbose, ctx)
     gitignore = get_gitignore(root)
 
     for s in src:
-        if s == "-" and stdin_filename:
+        if s == '-' and stdin_filename:
             p = Path(stdin_filename)
             is_stdin = True
         else:
@@ -677,18 +677,18 @@ def get_sources(
             if normalized_path is None:
                 continue
 
-            normalized_path = "/" + normalized_path
+            normalized_path = '/' + normalized_path
             # Hard-exclude any files that matches the `--force-exclude` regex.
             if force_exclude:
                 force_exclude_match = force_exclude.search(normalized_path)
             else:
                 force_exclude_match = None
             if force_exclude_match and force_exclude_match.group(0):
-                report.path_ignored(p, "matches the --force-exclude regular expression")
+                report.path_ignored(p, 'matches the --force-exclude regular expression')
                 continue
 
             if is_stdin:
-                p = Path(f"{STDIN_PLACEHOLDER}{str(p)}")
+                p = Path(f'{STDIN_PLACEHOLDER}{str(p)}')
 
             sources.add(p)
         elif p.is_dir():
@@ -704,10 +704,10 @@ def get_sources(
                     gitignore,
                 )
             )
-        elif s == "-":
+        elif s == '-':
             sources.add(p)
         else:
-            err(f"invalid path: {s}")
+            err(f'invalid path: {s}')
     return sources
 
 
@@ -723,7 +723,7 @@ def path_empty(
 
 
 def reformat_one(
-    src: Path, fast: bool, write_back: WriteBack, mode: Mode, report: "Report"
+    src: Path, fast: bool, write_back: WriteBack, mode: Mode, report: 'Report'
 ) -> None:
     """Reformat a single file under `src` without spawning child processes.
 
@@ -733,7 +733,7 @@ def reformat_one(
     try:
         changed = Changed.NO
 
-        if str(src) == "-":
+        if str(src) == '-':
             is_stdin = True
         elif str(src).startswith(STDIN_PLACEHOLDER):
             is_stdin = True
@@ -770,13 +770,13 @@ def reformat_one(
 
 
 def reformat_many(
-    sources: Set[Path], fast: bool, write_back: WriteBack, mode: Mode, report: "Report"
+    sources: Set[Path], fast: bool, write_back: WriteBack, mode: Mode, report: 'Report'
 ) -> None:
     """Reformat multiple files using a ProcessPoolExecutor."""
     executor: Executor
     loop = asyncio.get_event_loop()
     worker_count = os.cpu_count()
-    if sys.platform == "win32":
+    if sys.platform == 'win32':
         # Work around https://bugs.python.org/issue26903
         worker_count = min(worker_count, 60)
     try:
@@ -811,7 +811,7 @@ async def schedule_formatting(
     fast: bool,
     write_back: WriteBack,
     mode: Mode,
-    report: "Report",
+    report: 'Report',
     loop: asyncio.AbstractEventLoop,
     executor: Executor,
 ) -> None:
@@ -890,11 +890,11 @@ def format_file_in_place(
     code to the file.
     `mode` and `fast` options are passed to :func:`format_file_contents`.
     """
-    if src.suffix == ".pyi":
+    if src.suffix == '.pyi':
         mode = replace(mode, is_pyi=True)
 
     then = datetime.utcfromtimestamp(src.stat().st_mtime)
-    with open(src, "rb") as buf:
+    with open(src, 'rb') as buf:
         src_contents, encoding, newline = decode_bytes(buf.read())
     try:
         dst_contents = format_file_contents(src_contents, fast=fast, mode=mode)
@@ -902,12 +902,12 @@ def format_file_in_place(
         return False
 
     if write_back == WriteBack.YES:
-        with open(src, "w", encoding=encoding, newline=newline) as f:
+        with open(src, 'w', encoding=encoding, newline=newline) as f:
             f.write(dst_contents)
     elif write_back in (WriteBack.DIFF, WriteBack.COLOR_DIFF):
         now = datetime.utcnow()
-        src_name = f"{src}\t{then} +0000"
-        dst_name = f"{src}\t{now} +0000"
+        src_name = f'{src}\t{then} +0000'
+        dst_name = f'{src}\t{now} +0000'
         diff_contents = diff(src_contents, dst_contents, src_name, dst_name)
 
         if write_back == WriteBack.COLOR_DIFF:
@@ -929,23 +929,23 @@ def format_file_in_place(
 
 def color_diff(contents: str) -> str:
     """Inject the ANSI color codes to the diff."""
-    lines = contents.split("\n")
+    lines = contents.split('\n')
     for i, line in enumerate(lines):
-        if line.startswith("+++") or line.startswith("---"):
-            line = "\033[1;37m" + line + "\033[0m"  # bold white, reset
-        elif line.startswith("@@"):
-            line = "\033[36m" + line + "\033[0m"  # cyan, reset
-        elif line.startswith("+"):
-            line = "\033[32m" + line + "\033[0m"  # green, reset
-        elif line.startswith("-"):
-            line = "\033[31m" + line + "\033[0m"  # red, reset
+        if line.startswith('+++') or line.startswith('---'):
+            line = '\033[1;37m' + line + '\033[0m'  # bold white, reset
+        elif line.startswith('@@'):
+            line = '\033[36m' + line + '\033[0m'  # cyan, reset
+        elif line.startswith('+'):
+            line = '\033[32m' + line + '\033[0m'  # green, reset
+        elif line.startswith('-'):
+            line = '\033[31m' + line + '\033[0m'  # red, reset
         lines[i] = line
-    return "\n".join(lines)
+    return '\n'.join(lines)
 
 
 def wrap_stream_for_windows(
     f: io.TextIOWrapper,
-) -> Union[io.TextIOWrapper, "colorama.AnsiToWin32"]:
+) -> Union[io.TextIOWrapper, 'colorama.AnsiToWin32']:
     """
     Wrap stream with colorama's wrap_stream so colors are shown on Windows.
 
@@ -990,8 +990,8 @@ def format_stdin_to_stdout(
             f.write(dst)
         elif write_back in (WriteBack.DIFF, WriteBack.COLOR_DIFF):
             now = datetime.utcnow()
-            src_name = f"STDIN\t{then} +0000"
-            dst_name = f"STDOUT\t{now} +0000"
+            src_name = f'STDIN\t{then} +0000'
+            dst_name = f'STDOUT\t{now} +0000'
             d = diff(src, dst, src_name, dst_name)
             if write_back == WriteBack.COLOR_DIFF:
                 d = color_diff(d)
@@ -1060,7 +1060,7 @@ def format_str(src_contents: str, *, mode: Mode) -> FileContent:
     normalize_fmt_off(src_node)
     lines = LineGenerator(
         mode=mode,
-        remove_u_prefix="unicode_literals" in future_imports
+        remove_u_prefix='unicode_literals' in future_imports
         or supports_feature(versions, Feature.UNICODE_LITERALS),
     )
     elt = EmptyLineTracker(is_pyi=mode.is_pyi)
@@ -1079,7 +1079,7 @@ def format_str(src_contents: str, *, mode: Mode) -> FileContent:
             current_line, mode=mode, features=split_line_features
         ):
             dst_contents.append(str(line))
-    return "".join(dst_contents)
+    return ''.join(dst_contents)
 
 
 def decode_bytes(src: bytes) -> Tuple[FileContent, Encoding, NewLine]:
@@ -1091,9 +1091,9 @@ def decode_bytes(src: bytes) -> Tuple[FileContent, Encoding, NewLine]:
     srcbuf = io.BytesIO(src)
     encoding, lines = tokenize.detect_encoding(srcbuf.readline)
     if not lines:
-        return "", encoding, "\n"
+        return '', encoding, '\n'
 
-    newline = "\r\n" if b"\r\n" == lines[0][-2:] else "\n"
+    newline = '\r\n' if b'\r\n' == lines[0][-2:] else '\n'
     srcbuf.seek(0)
     with io.TextIOWrapper(srcbuf, encoding) as tiow:
         return tiow.read(), encoding, newline
@@ -1140,8 +1140,8 @@ def get_grammars(target_versions: Set[TargetVersion]) -> List[Grammar]:
 
 def lib2to3_parse(src_txt: str, target_versions: Iterable[TargetVersion] = ()) -> Node:
     """Given a string with source, return the lib2to3 Node."""
-    if not src_txt.endswith("\n"):
-        src_txt += "\n"
+    if not src_txt.endswith('\n'):
+        src_txt += '\n'
 
     for grammar in get_grammars(set(target_versions)):
         drv = driver.Driver(grammar, pytree.convert)
@@ -1155,8 +1155,8 @@ def lib2to3_parse(src_txt: str, target_versions: Iterable[TargetVersion] = ()) -
             try:
                 faulty_line = lines[lineno - 1]
             except IndexError:
-                faulty_line = "<line number missing in source>"
-            exc = InvalidInput(f"Cannot parse: {lineno}:{column}: {faulty_line}")
+                faulty_line = '<line number missing in source>'
+            exc = InvalidInput(f'Cannot parse: {lineno}:{column}: {faulty_line}')
     else:
         raise exc from None
 
@@ -1192,7 +1192,7 @@ class Visitor(Generic[T]):
         # using self.visit_default as the default arg to getattr) in order
         # to save needing to create a bound method object and so mypyc can
         # generate a native call to visit_default.
-        visitf = getattr(self, f"visit_{name}", None)
+        visitf = getattr(self, f'visit_{name}', None)
         if visitf:
             yield from visitf(node)
         else:
@@ -1210,24 +1210,24 @@ class DebugVisitor(Visitor[T]):
     tree_depth: int = 0
 
     def visit_default(self, node: LN) -> Iterator[T]:
-        indent = " " * (2 * self.tree_depth)
+        indent = ' ' * (2 * self.tree_depth)
         if isinstance(node, Node):
             _type = type_repr(node.type)
-            out(f"{indent}{_type}", fg="yellow")
+            out(f'{indent}{_type}', fg='yellow')
             self.tree_depth += 1
             for child in node.children:
                 yield from self.visit(child)
 
             self.tree_depth -= 1
-            out(f"{indent}/{_type}", fg="yellow", bold=False)
+            out(f'{indent}/{_type}', fg='yellow', bold=False)
         else:
             _type = token.tok_name.get(node.type, str(node.type))
-            out(f"{indent}{_type}", fg="blue", nl=False)
+            out(f'{indent}{_type}', fg='blue', nl=False)
             if node.prefix:
                 # We don't have to handle prefixes for `Node` objects since
                 # that delegates to the first child anyway.
-                out(f" {node.prefix!r}", fg="green", bold=False, nl=False)
-            out(f" {node.value!r}", fg="blue", bold=False)
+                out(f' {node.prefix!r}', fg='green', bold=False, nl=False)
+            out(f' {node.value!r}', fg='blue', bold=False)
 
     @classmethod
     def show(cls, code: Union[str, Leaf, Node]) -> None:
@@ -1253,8 +1253,8 @@ STATEMENT: Final = {
     syms.classdef,
 }
 STANDALONE_COMMENT: Final = 153
-token.tok_name[STANDALONE_COMMENT] = "STANDALONE_COMMENT"
-LOGIC_OPERATORS: Final = {"and", "or"}
+token.tok_name[STANDALONE_COMMENT] = 'STANDALONE_COMMENT'
+LOGIC_OPERATORS: Final = {'and', 'or'}
 COMPARATORS: Final = {
     token.LESS,
     token.GREATER,
@@ -1313,20 +1313,20 @@ TEST_DESCENDANTS: Final = {
     syms.power,
 }
 ASSIGNMENTS: Final = {
-    "=",
-    "+=",
-    "-=",
-    "*=",
-    "@=",
-    "/=",
-    "%=",
-    "&=",
-    "|=",
-    "^=",
-    "<<=",
-    ">>=",
-    "**=",
-    "//=",
+    '=',
+    '+=',
+    '-=',
+    '*=',
+    '@=',
+    '/=',
+    '%=',
+    '&=',
+    '|=',
+    '^=',
+    '<<=',
+    '>>=',
+    '**=',
+    '//=',
 }
 COMPREHENSION_PRIORITY: Final = 20
 COMMA_PRIORITY: Final = 18
@@ -1391,8 +1391,8 @@ class BracketTracker:
                 opening_bracket = self.bracket_match.pop((self.depth, leaf.type))
             except KeyError as e:
                 raise BracketMatchError(
-                    "Unable to match a closing bracket to the following opening"
-                    f" bracket: {leaf}"
+                    'Unable to match a closing bracket to the following opening'
+                    f' bracket: {leaf}'
                 ) from e
             leaf.opening_bracket = opening_bracket
             if not leaf.value:
@@ -1444,7 +1444,7 @@ class BracketTracker:
         To avoid splitting on the comma in this situation, increase the depth of
         tokens between `for` and `in`.
         """
-        if leaf.type == token.NAME and leaf.value == "for":
+        if leaf.type == token.NAME and leaf.value == 'for':
             self.depth += 1
             self._for_loop_depths.append(self.depth)
             return True
@@ -1457,7 +1457,7 @@ class BracketTracker:
             self._for_loop_depths
             and self._for_loop_depths[-1] == self.depth
             and leaf.type == token.NAME
-            and leaf.value == "in"
+            and leaf.value == 'in'
         ):
             self.depth -= 1
             self._for_loop_depths.pop()
@@ -1471,7 +1471,7 @@ class BracketTracker:
         To avoid splitting on the comma in this situation, increase the depth of
         tokens between `lambda` and `:`.
         """
-        if leaf.type == token.NAME and leaf.value == "lambda":
+        if leaf.type == token.NAME and leaf.value == 'lambda':
             self.depth += 1
             self._lambda_argument_depths.append(self.depth)
             return True
@@ -1550,11 +1550,11 @@ class Line:
         """
         if self.bracket_tracker.depth == 0:
             if self.is_comment:
-                raise ValueError("cannot append to standalone comments")
+                raise ValueError('cannot append to standalone comments')
 
             if self.leaves and leaf.type == STANDALONE_COMMENT:
                 raise ValueError(
-                    "cannot append standalone comments to a populated line"
+                    'cannot append standalone comments to a populated line'
                 )
 
         self.append(leaf, preformatted=preformatted)
@@ -1580,14 +1580,14 @@ class Line:
         return (
             bool(self)
             and self.leaves[0].type == token.NAME
-            and self.leaves[0].value == "class"
+            and self.leaves[0].value == 'class'
         )
 
     @property
     def is_stub_class(self) -> bool:
         """Is this line a class definition with a body consisting only of "..."?"""
         return self.is_class and self.leaves[-3:] == [
-            Leaf(token.DOT, ".") for _ in range(3)
+            Leaf(token.DOT, '.') for _ in range(3)
         ]
 
     @property
@@ -1602,11 +1602,11 @@ class Line:
             second_leaf: Optional[Leaf] = self.leaves[1]
         except IndexError:
             second_leaf = None
-        return (first_leaf.type == token.NAME and first_leaf.value == "def") or (
+        return (first_leaf.type == token.NAME and first_leaf.value == 'def') or (
             first_leaf.type == token.ASYNC
             and second_leaf is not None
             and second_leaf.type == token.NAME
-            and second_leaf.value == "def"
+            and second_leaf.value == 'def'
         )
 
     @property
@@ -1620,9 +1620,9 @@ class Line:
             and len(self.leaves) == 4
             and self.is_class
             and self.leaves[2].type == token.LPAR
-            and self.leaves[2].value == "("
+            and self.leaves[2].value == '('
             and self.leaves[3].type == token.RPAR
-            and self.leaves[3].value == ")"
+            and self.leaves[3].value == ')'
         )
 
     @property
@@ -1669,7 +1669,7 @@ class Line:
             for comment in comments:
                 if is_type_comment(comment):
                     if comment_seen or (
-                        not is_type_comment(comment, " ignore")
+                        not is_type_comment(comment, ' ignore')
                         and leaf_id not in ignored_ids
                     ):
                         return True
@@ -1706,7 +1706,7 @@ class Line:
             # line.
             for node in self.leaves[-2:]:
                 for comment in self.comments.get(id(node), []):
-                    if is_type_comment(comment, " ignore"):
+                    if is_type_comment(comment, ' ignore'):
                         return True
 
         return False
@@ -1753,7 +1753,7 @@ class Line:
             comment.type == STANDALONE_COMMENT
             and self.bracket_tracker.any_open_brackets()
         ):
-            comment.prefix = ""
+            comment.prefix = ''
             return False
 
         if comment.type != token.COMMENT:
@@ -1761,7 +1761,7 @@ class Line:
 
         if not self.leaves:
             comment.type = STANDALONE_COMMENT
-            comment.prefix = ""
+            comment.prefix = ''
             return False
 
         last_leaf = self.leaves[-1]
@@ -1777,7 +1777,7 @@ class Line:
             # this avoids unstable formatting caused by comment migration.
             if len(self.leaves) < 2:
                 comment.type = STANDALONE_COMMENT
-                comment.prefix = ""
+                comment.prefix = ''
                 return False
 
             last_leaf = self.leaves[-2]
@@ -1814,7 +1814,7 @@ class Line:
             n.type in TEST_DESCENDANTS for n in subscript_start.pre_order()
         )
 
-    def clone(self) -> "Line":
+    def clone(self) -> 'Line':
         return Line(
             mode=self.mode,
             depth=self.depth,
@@ -1826,18 +1826,18 @@ class Line:
     def __str__(self) -> str:
         """Render the line."""
         if not self:
-            return "\n"
+            return '\n'
 
-        indent = "    " * self.depth
+        indent = '    ' * self.depth
         leaves = iter(self.leaves)
         first = next(leaves)
-        res = f"{first.prefix}{indent}{first.value}"
+        res = f'{first.prefix}{indent}{first.value}'
         for leaf in leaves:
             res += str(leaf)
         for comment in itertools.chain.from_iterable(self.comments.values()):
             res += str(comment)
 
-        return res + "\n"
+        return res + '\n'
 
     def __bool__(self) -> bool:
         """Return True if the line has leaves or comments."""
@@ -1884,9 +1884,9 @@ class EmptyLineTracker:
         if current_line.leaves:
             # Consume the first leaf's extra newlines.
             first_leaf = current_line.leaves[0]
-            before = first_leaf.prefix.count("\n")
+            before = first_leaf.prefix.count('\n')
             before = min(before, max_allowed)
-            first_leaf.prefix = ""
+            first_leaf.prefix = ''
         else:
             before = 0
         depth = current_line.depth
@@ -2142,26 +2142,26 @@ class LineGenerator(Visitor[Line]):
             and len(operand.children) == 3
             and operand.children[1].type == token.DOUBLESTAR
         ):
-            lpar = Leaf(token.LPAR, "(")
-            rpar = Leaf(token.RPAR, ")")
+            lpar = Leaf(token.LPAR, '(')
+            rpar = Leaf(token.RPAR, ')')
             index = operand.remove() or 0
             node.insert_child(index, Node(syms.atom, [lpar, operand, rpar]))
         yield from self.visit_default(node)
 
     def visit_STRING(self, leaf: Leaf) -> Iterator[Line]:
-        if is_docstring(leaf) and "\\\n" not in leaf.value:
+        if is_docstring(leaf) and '\\\n' not in leaf.value:
             # We're ignoring docstrings with backslash newline escapes because changing
             # indentation of those changes the AST representation of the code.
             prefix = get_string_prefix(leaf.value)
             lead_len = len(prefix) + 3
             tail_len = -3
-            indent = " " * 4 * self.current_line.depth
+            indent = ' ' * 4 * self.current_line.depth
             docstring = fix_docstring(leaf.value[lead_len:tail_len], indent)
             if docstring:
                 if leaf.value[lead_len - 1] == docstring[0]:
-                    docstring = " " + docstring
+                    docstring = ' ' + docstring
                 if leaf.value[tail_len + 1] == docstring[-1]:
-                    docstring = docstring + " "
+                    docstring = docstring + ' '
             leaf.value = leaf.value[0:lead_len] + docstring + leaf.value[tail_len:]
 
         yield from self.visit_default(leaf)
@@ -2172,23 +2172,23 @@ class LineGenerator(Visitor[Line]):
 
         v = self.visit_stmt
         Ø: Set[str] = set()
-        self.visit_assert_stmt = partial(v, keywords={"assert"}, parens={"assert", ","})
+        self.visit_assert_stmt = partial(v, keywords={'assert'}, parens={'assert', ','})
         self.visit_if_stmt = partial(
-            v, keywords={"if", "else", "elif"}, parens={"if", "elif"}
+            v, keywords={'if', 'else', 'elif'}, parens={'if', 'elif'}
         )
-        self.visit_while_stmt = partial(v, keywords={"while", "else"}, parens={"while"})
-        self.visit_for_stmt = partial(v, keywords={"for", "else"}, parens={"for", "in"})
+        self.visit_while_stmt = partial(v, keywords={'while', 'else'}, parens={'while'})
+        self.visit_for_stmt = partial(v, keywords={'for', 'else'}, parens={'for', 'in'})
         self.visit_try_stmt = partial(
-            v, keywords={"try", "except", "else", "finally"}, parens=Ø
+            v, keywords={'try', 'except', 'else', 'finally'}, parens=Ø
         )
-        self.visit_except_clause = partial(v, keywords={"except"}, parens=Ø)
-        self.visit_with_stmt = partial(v, keywords={"with"}, parens=Ø)
-        self.visit_funcdef = partial(v, keywords={"def"}, parens=Ø)
-        self.visit_classdef = partial(v, keywords={"class"}, parens=Ø)
+        self.visit_except_clause = partial(v, keywords={'except'}, parens=Ø)
+        self.visit_with_stmt = partial(v, keywords={'with'}, parens=Ø)
+        self.visit_funcdef = partial(v, keywords={'def'}, parens=Ø)
+        self.visit_classdef = partial(v, keywords={'class'}, parens=Ø)
         self.visit_expr_stmt = partial(v, keywords=Ø, parens=ASSIGNMENTS)
-        self.visit_return_stmt = partial(v, keywords={"return"}, parens={"return"})
-        self.visit_import_from = partial(v, keywords=Ø, parens={"import"})
-        self.visit_del_stmt = partial(v, keywords=Ø, parens={"del"})
+        self.visit_return_stmt = partial(v, keywords={'return'}, parens={'return'})
+        self.visit_import_from = partial(v, keywords=Ø, parens={'import'})
+        self.visit_del_stmt = partial(v, keywords=Ø, parens={'del'})
         self.visit_async_funcdef = self.visit_async_stmt
         self.visit_decorated = self.visit_decorators
 
@@ -2207,9 +2207,9 @@ def whitespace(leaf: Leaf, *, complex_subscript: bool) -> str:  # noqa: C901
     `complex_subscript` signals whether the given leaf is part of a subscription
     which has non-trivial arguments, like arithmetic expressions or function calls.
     """
-    NO = ""
-    SPACE = " "
-    DOUBLESPACE = "  "
+    NO = ''
+    SPACE = ' '
+    DOUBLESPACE = '  '
     t = leaf.type
     p = leaf.parent
     v = leaf.value
@@ -2219,7 +2219,7 @@ def whitespace(leaf: Leaf, *, complex_subscript: bool) -> str:  # noqa: C901
     if t == token.COMMENT:
         return DOUBLESPACE
 
-    assert p is not None, f"INTERNAL ERROR: hand-made leaf without parent: {leaf!r}"
+    assert p is not None, f'INTERNAL ERROR: hand-made leaf without parent: {leaf!r}'
     if t == token.COLON and p.type not in {
         syms.subscript,
         syms.subscriptlist,
@@ -2279,7 +2279,7 @@ def whitespace(leaf: Leaf, *, complex_subscript: bool) -> str:  # noqa: C901
             and prevp.parent.type == syms.shift_expr
             and prevp.prev_sibling
             and prevp.prev_sibling.type == token.NAME
-            and prevp.prev_sibling.value == "print"  # type: ignore
+            and prevp.prev_sibling.value == 'print'  # type: ignore
         ):
             # Python 2 print chevron
             return NO
@@ -2376,7 +2376,7 @@ def whitespace(leaf: Leaf, *, complex_subscript: bool) -> str:  # noqa: C901
     elif p.type in {syms.subscript, syms.sliceop}:
         # indexing
         if not prev:
-            assert p.parent is not None, "subscripts are always parented"
+            assert p.parent is not None, 'subscripts are always parented'
             if p.parent.type == syms.subscriptlist:
                 return SPACE
 
@@ -2422,7 +2422,7 @@ def whitespace(leaf: Leaf, *, complex_subscript: bool) -> str:  # noqa: C901
                 return NO
 
         elif t == token.NAME:
-            if v == "import":
+            if v == 'import':
                 return SPACE
 
             if prev and prev.type == token.DOT:
@@ -2557,50 +2557,50 @@ def is_split_before_delimiter(leaf: Leaf, previous: Optional[Leaf] = None) -> Pr
         return 0
 
     if (
-        leaf.value == "for"
+        leaf.value == 'for'
         and leaf.parent
         and leaf.parent.type in {syms.comp_for, syms.old_comp_for}
         or leaf.type == token.ASYNC
     ):
         if (
             not isinstance(leaf.prev_sibling, Leaf)
-            or leaf.prev_sibling.value != "async"
+            or leaf.prev_sibling.value != 'async'
         ):
             return COMPREHENSION_PRIORITY
 
     if (
-        leaf.value == "if"
+        leaf.value == 'if'
         and leaf.parent
         and leaf.parent.type in {syms.comp_if, syms.old_comp_if}
     ):
         return COMPREHENSION_PRIORITY
 
-    if leaf.value in {"if", "else"} and leaf.parent and leaf.parent.type == syms.test:
+    if leaf.value in {'if', 'else'} and leaf.parent and leaf.parent.type == syms.test:
         return TERNARY_PRIORITY
 
-    if leaf.value == "is":
+    if leaf.value == 'is':
         return COMPARATOR_PRIORITY
 
     if (
-        leaf.value == "in"
+        leaf.value == 'in'
         and leaf.parent
         and leaf.parent.type in {syms.comp_op, syms.comparison}
         and not (
             previous is not None
             and previous.type == token.NAME
-            and previous.value == "not"
+            and previous.value == 'not'
         )
     ):
         return COMPARATOR_PRIORITY
 
     if (
-        leaf.value == "not"
+        leaf.value == 'not'
         and leaf.parent
         and leaf.parent.type == syms.comp_op
         and not (
             previous is not None
             and previous.type == token.NAME
-            and previous.value == "is"
+            and previous.value == 'is'
         )
     ):
         return COMPARATOR_PRIORITY
@@ -2611,10 +2611,10 @@ def is_split_before_delimiter(leaf: Leaf, previous: Optional[Leaf] = None) -> Pr
     return 0
 
 
-FMT_OFF = {"# fmt: off", "# fmt:off", "# yapf: disable"}
-FMT_SKIP = {"# fmt: skip", "# fmt:skip"}
+FMT_OFF = {'# fmt: off', '# fmt:off', '# yapf: disable'}
+FMT_SKIP = {'# fmt: skip', '# fmt:skip'}
 FMT_PASS = {*FMT_OFF, *FMT_SKIP}
-FMT_ON = {"# fmt: on", "# fmt:on", "# yapf: enable"}
+FMT_ON = {'# fmt: on', '# fmt:on', '# yapf: enable'}
 
 
 def generate_comments(leaf: LN) -> Iterator[Leaf]:
@@ -2637,7 +2637,7 @@ def generate_comments(leaf: LN) -> Iterator[Leaf]:
     are emitted with a fake STANDALONE_COMMENT token identifier.
     """
     for pc in list_comments(leaf.prefix, is_endmarker=leaf.type == token.ENDMARKER):
-        yield Leaf(pc.type, pc.value, prefix="\n" * pc.newlines)
+        yield Leaf(pc.type, pc.value, prefix='\n' * pc.newlines)
 
 
 @dataclass
@@ -2662,22 +2662,22 @@ class ProtoComment:
 def list_comments(prefix: str, *, is_endmarker: bool) -> List[ProtoComment]:
     """Return a list of :class:`ProtoComment` objects parsed from the given `prefix`."""
     result: List[ProtoComment] = []
-    if not prefix or "#" not in prefix:
+    if not prefix or '#' not in prefix:
         return result
 
     consumed = 0
     nlines = 0
     ignored_lines = 0
-    for index, line in enumerate(re.split("\r?\n", prefix)):
+    for index, line in enumerate(re.split('\r?\n', prefix)):
         consumed += len(line) + 1  # adding the length of the split '\n'
         line = line.lstrip()
         if not line:
             nlines += 1
-        if not line.startswith("#"):
+        if not line.startswith('#'):
             # Escaped newlines outside of a comment are not really newlines at
             # all. We treat a single-line comment following an escaped newline
             # as a simple trailing comment.
-            if line.endswith("\\"):
+            if line.endswith('\\'):
                 ignored_lines += 1
             continue
 
@@ -2705,20 +2705,20 @@ def make_comment(content: str) -> str:
     """
     content = content.rstrip()
     if not content:
-        return "#"
+        return '#'
 
-    if content[0] == "#":
+    if content[0] == '#':
         content = content[1:]
-    NON_BREAKING_SPACE = " "
+    NON_BREAKING_SPACE = ' '
     if (
         content
         and content[0] == NON_BREAKING_SPACE
-        and not content.lstrip().startswith("type:")
+        and not content.lstrip().startswith('type:')
     ):
-        content = " " + content[1:]  # Replace NBSP by a simple space
+        content = ' ' + content[1:]  # Replace NBSP by a simple space
     if content and content[0] not in " !:#'%":
-        content = " " + content
-    return "#" + content
+        content = ' ' + content
+    return '#' + content
 
 
 def transform_line(
@@ -2863,7 +2863,7 @@ class StringTransformer(ABC):
 
     line_length: int
     normalize_strings: bool
-    __name__ = "StringTransformer"
+    __name__ = 'StringTransformer'
 
     @abstractmethod
     def do_match(self, line: Line) -> TMatchResult:
@@ -2906,15 +2906,15 @@ class StringTransformer(ABC):
         # Optimization to avoid calling `self.do_match(...)` when the line does
         # not contain any string.
         if not any(leaf.type == token.STRING for leaf in line.leaves):
-            raise CannotTransform("There are no strings in this line.")
+            raise CannotTransform('There are no strings in this line.')
 
         match_result = self.do_match(line)
 
         if isinstance(match_result, Err):
             cant_transform = match_result.err()
             raise CannotTransform(
-                f"The string transformer {self.__class__.__name__} does not recognize"
-                " this line as one that it can transform."
+                f'The string transformer {self.__class__.__name__} does not recognize'
+                ' this line as one that it can transform.'
             ) from cant_transform
 
         string_idx = match_result.ok()
@@ -2923,7 +2923,7 @@ class StringTransformer(ABC):
             if isinstance(line_result, Err):
                 cant_transform = line_result.err()
                 raise CannotTransform(
-                    "StringTransformer failed while attempting to transform string."
+                    'StringTransformer failed while attempting to transform string.'
                 ) from cant_transform
             line = line_result.ok()
             yield line
@@ -2966,7 +2966,7 @@ class CustomSplitMapMixin:
     _CUSTOM_SPLIT_MAP: Dict[_Key, Tuple[CustomSplit, ...]] = defaultdict(tuple)
 
     @staticmethod
-    def _get_key(string: str) -> "CustomSplitMapMixin._Key":
+    def _get_key(string: str) -> 'CustomSplitMapMixin._Key':
         """
         Returns:
             A unique identifier that is used internally to map @string to a
@@ -3047,10 +3047,10 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
             ):
                 return Ok(i)
 
-            if leaf.type == token.STRING and "\\\n" in leaf.value:
+            if leaf.type == token.STRING and '\\\n' in leaf.value:
                 return Ok(i)
 
-        return TErr("This line has no strings that need merging.")
+        return TErr('This line has no strings that need merging.')
 
     def do_transform(self, line: Line, string_idx: int) -> Iterator[TResult[Line]]:
         new_line = line
@@ -3068,7 +3068,7 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
             msg_cant_transform = msg_result.err()
             rblc_cant_transform = rblc_result.err()
             cant_transform = CannotTransform(
-                "StringMerger failed to merge any strings in this line."
+                'StringMerger failed to merge any strings in this line.'
             )
 
             # Chain the errors together using `__cause__`.
@@ -3098,12 +3098,12 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
         string_leaf = LL[string_idx]
         if not (
             string_leaf.type == token.STRING
-            and "\\\n" in string_leaf.value
+            and '\\\n' in string_leaf.value
             and not has_triple_quotes(string_leaf.value)
         ):
             return TErr(
-                f"String leaf {string_leaf} does not contain any backslash line"
-                " continuation characters."
+                f'String leaf {string_leaf} does not contain any backslash line'
+                ' continuation characters.'
             )
 
         new_line = line.clone()
@@ -3111,7 +3111,7 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
         append_leaves(new_line, line, LL)
 
         new_string_leaf = new_line.leaves[string_idx]
-        new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+        new_string_leaf.value = new_string_leaf.value.replace('\\\n', '')
 
         return Ok(new_line)
 
@@ -3142,7 +3142,7 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
         # merge. We will then later go through our final result and use the
         # various instances of BREAK_MARK we find to add the right values to
         # the custom split map.
-        BREAK_MARK = "@@@@@ BLACK BREAKPOINT MARKER @@@@@"
+        BREAK_MARK = '@@@@@ BLACK BREAKPOINT MARKER @@@@@'
 
         QUOTE = LL[string_idx].value[-1]
 
@@ -3160,10 +3160,10 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
             """
             assert_is_leaf_string(string)
 
-            RE_EVEN_BACKSLASHES = r"(?:(?<!\\)(?:\\\\)*)"
+            RE_EVEN_BACKSLASHES = r'(?:(?<!\\)(?:\\\\)*)'
             naked_string = string[len(string_prefix) + 1 : -1]
             naked_string = re.sub(
-                "(" + RE_EVEN_BACKSLASHES + ")" + QUOTE, r"\1\\" + QUOTE, naked_string
+                '(' + RE_EVEN_BACKSLASHES + ')' + QUOTE, r'\1\\' + QUOTE, naked_string
             )
             return naked_string
 
@@ -3177,7 +3177,7 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
         # Sets the 'prefix' variable. This is the prefix that the final merged
         # string will have.
         next_str_idx = string_idx
-        prefix = ""
+        prefix = ''
         while (
             not prefix
             and is_valid_index(next_str_idx)
@@ -3195,8 +3195,8 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
         #   NS: naked string
         #   SS: next string
         #   NSS: naked next string
-        S = ""
-        NS = ""
+        S = ''
+        NS = ''
         num_of_strings = 0
         next_str_idx = string_idx
         while is_valid_index(next_str_idx) and LL[next_str_idx].type == token.STRING:
@@ -3207,9 +3207,9 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
 
             # If this is an f-string group but this substring is not prefixed
             # with 'f'...
-            if "f" in prefix and "f" not in next_prefix:
+            if 'f' in prefix and 'f' not in next_prefix:
                 # Then we must escape any braces contained in this substring.
-                SS = re.subf(r"(\{|\})", "{1}{1}", SS)
+                SS = re.subf(r'(\{|\})', '{1}{1}', SS)
 
             NSS = make_naked(SS, next_prefix)
 
@@ -3231,13 +3231,13 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
             mark_idx = temp_string.find(BREAK_MARK)
             assert (
                 mark_idx >= 0
-            ), "Logic error while filling the custom string breakpoint cache."
+            ), 'Logic error while filling the custom string breakpoint cache.'
 
             temp_string = temp_string[mark_idx + len(BREAK_MARK) :]
             breakpoint_idx = mark_idx + (len(prefix) if has_prefix else 0) + 1
             custom_splits.append(CustomSplit(has_prefix, breakpoint_idx))
 
-        string_leaf = Leaf(token.STRING, S_leaf.value.replace(BREAK_MARK, ""))
+        string_leaf = Leaf(token.STRING, S_leaf.value.replace(BREAK_MARK, ''))
 
         if atom_node is not None:
             replace_child(atom_node, string_leaf)
@@ -3291,8 +3291,8 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
                     found_sa_comment = True
                 elif found_sa_comment:
                     return TErr(
-                        "StringMerger does NOT merge string groups which contain "
-                        "stand-alone comments."
+                        'StringMerger does NOT merge string groups which contain '
+                        'stand-alone comments.'
                     )
 
                 i += inc
@@ -3310,32 +3310,32 @@ class StringMerger(CustomSplitMapMixin, StringTransformer):
                 break
 
             if has_triple_quotes(leaf.value):
-                return TErr("StringMerger does NOT merge multiline strings.")
+                return TErr('StringMerger does NOT merge multiline strings.')
 
             num_of_strings += 1
             prefix = get_string_prefix(leaf.value)
-            if "r" in prefix:
-                return TErr("StringMerger does NOT merge raw strings.")
+            if 'r' in prefix:
+                return TErr('StringMerger does NOT merge raw strings.')
 
             set_of_prefixes.add(prefix)
 
             if id(leaf) in line.comments:
                 num_of_inline_string_comments += 1
                 if contains_pragma_comment(line.comments[id(leaf)]):
-                    return TErr("Cannot merge strings which have pragma comments.")
+                    return TErr('Cannot merge strings which have pragma comments.')
 
         if num_of_strings < 2:
             return TErr(
-                f"Not enough strings to merge (num_of_strings={num_of_strings})."
+                f'Not enough strings to merge (num_of_strings={num_of_strings}).'
             )
 
         if num_of_inline_string_comments > 1:
             return TErr(
-                f"Too many inline string comments ({num_of_inline_string_comments})."
+                f'Too many inline string comments ({num_of_inline_string_comments}).'
             )
 
-        if len(set_of_prefixes) > 1 and set_of_prefixes != {"", "f"}:
-            return TErr(f"Too many different prefixes ({set_of_prefixes}).")
+        if len(set_of_prefixes) > 1 and set_of_prefixes != {'', 'f'}:
+            return TErr(f'Too many different prefixes ({set_of_prefixes}).')
 
         return Ok(None)
 
@@ -3449,7 +3449,7 @@ class StringParenStripper(StringTransformer):
 
                 return Ok(string_idx)
 
-        return TErr("This line has no strings wrapped in parens.")
+        return TErr('This line has no strings wrapped in parens.')
 
     def do_transform(self, line: Line, string_idx: int) -> Iterator[TResult[Line]]:
         LL = line.leaves
@@ -3460,7 +3460,7 @@ class StringParenStripper(StringTransformer):
         for leaf in (LL[string_idx - 1], LL[rpar_idx]):
             if line.comments_after(leaf):
                 yield TErr(
-                    "Will not strip parentheses which have comments attached to them."
+                    'Will not strip parentheses which have comments attached to them.'
                 )
                 return
 
@@ -3551,7 +3551,7 @@ class BaseStringSplitter(StringTransformer):
         max_string_length = self.__get_max_string_length(line, string_idx)
         if len(string_leaf.value) <= max_string_length:
             return TErr(
-                "The string itself is not what is causing this line to be too long."
+                'The string itself is not what is causing this line to be too long.'
             )
 
         if not string_leaf.parent or [L.type for L in string_leaf.parent.children] == [
@@ -3559,20 +3559,20 @@ class BaseStringSplitter(StringTransformer):
             token.NEWLINE,
         ]:
             return TErr(
-                f"This string ({string_leaf.value}) appears to be pointless (i.e. has"
-                " no parent)."
+                f'This string ({string_leaf.value}) appears to be pointless (i.e. has'
+                ' no parent).'
             )
 
         if id(line.leaves[string_idx]) in line.comments and contains_pragma_comment(
             line.comments[id(line.leaves[string_idx])]
         ):
             return TErr(
-                "Line appears to end with an inline pragma comment. Splitting the line"
+                'Line appears to end with an inline pragma comment. Splitting the line'
                 " could modify the pragma's behavior."
             )
 
         if has_triple_quotes(string_leaf.value):
-            return TErr("We cannot split multiline strings.")
+            return TErr('We cannot split multiline strings.')
 
         return Ok(None)
 
@@ -3612,7 +3612,7 @@ class BaseStringSplitter(StringTransformer):
             p_idx = string_idx - 1
             if (
                 LL[string_idx - 1].type == token.LPAR
-                and LL[string_idx - 1].value == ""
+                and LL[string_idx - 1].value == ''
                 and string_idx >= 2
             ):
                 # If the previous leaf is an empty LPAR placeholder, we should skip it.
@@ -3644,7 +3644,7 @@ class BaseStringSplitter(StringTransformer):
 
         if is_valid_index(string_idx + 1):
             N = LL[string_idx + 1]
-            if N.type == token.RPAR and N.value == "" and len(LL) > string_idx + 2:
+            if N.type == token.RPAR and N.value == '' and len(LL) > string_idx + 2:
                 # If the next leaf is an empty RPAR placeholder, we should skip it.
                 N = LL[string_idx + 2]
 
@@ -3754,7 +3754,7 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
 
         # The next/first leaf MUST be a string...
         if not is_valid_index(idx) or LL[idx].type != token.STRING:
-            return TErr("Line does not start with a string.")
+            return TErr('Line does not start with a string.')
 
         string_idx = idx
 
@@ -3772,7 +3772,7 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
 
         # But no more leaves are allowed...
         if is_valid_index(idx):
-            return TErr("This line does not end with a string.")
+            return TErr('This line does not end with a string.')
 
         return Ok(string_idx)
 
@@ -3790,7 +3790,7 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
         # contain any f-expressions, but ONLY if the original f-string
         # contains at least one f-expression. Otherwise, we will alter the AST
         # of the program.
-        drop_pointless_f_prefix = ("f" in prefix) and re.search(
+        drop_pointless_f_prefix = ('f' in prefix) and re.search(
             self.RE_FEXPR, LL[string_idx].value, re.VERBOSE
         )
 
@@ -3809,7 +3809,7 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
                 this function does nothing.
             """
             if line_needs_plus():
-                plus_leaf = Leaf(token.PLUS, "+")
+                plus_leaf = Leaf(token.PLUS, '+')
                 replace_child(LL[0], plus_leaf)
                 new_line.append(plus_leaf)
 
@@ -3838,8 +3838,8 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
         max_break_idx -= line.depth * 4
         if max_break_idx < 0:
             yield TErr(
-                f"Unable to split {LL[string_idx].value} at such high of a line depth:"
-                f" {line.depth}"
+                f'Unable to split {LL[string_idx].value} at such high of a line depth:'
+                f' {line.depth}'
             )
             return
 
@@ -4024,7 +4024,7 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
 
             yield from _fexpr_slices
 
-        is_fstring = "f" in get_string_prefix(string)
+        is_fstring = 'f' in get_string_prefix(string)
 
         def breaks_fstring_expression(i: Index) -> bool:
             """
@@ -4047,11 +4047,11 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
                 True iff ALL of the conditions listed in the 'Transformations'
                 section of this classes' docstring would be be met by returning @i.
             """
-            is_space = string[i] == " "
+            is_space = string[i] == ' '
 
             is_not_escaped = True
             j = i - 1
-            while is_valid_index(j) and string[j] == "\\":
+            while is_valid_index(j) and string[j] == '\\':
                 is_not_escaped = not is_not_escaped
                 j -= 1
 
@@ -4105,15 +4105,15 @@ class StringSplitter(CustomSplitMapMixin, BaseStringSplitter):
         """
         assert_is_leaf_string(string)
 
-        if "f" in prefix and not re.search(self.RE_FEXPR, string, re.VERBOSE):
-            new_prefix = prefix.replace("f", "")
+        if 'f' in prefix and not re.search(self.RE_FEXPR, string, re.VERBOSE):
+            new_prefix = prefix.replace('f', '')
 
             temp = string[len(prefix) :]
-            temp = re.sub(r"\{\{", "{", temp)
-            temp = re.sub(r"\}\}", "}", temp)
+            temp = re.sub(r'\{\{', '{', temp)
+            temp = re.sub(r'\}\}', '}', temp)
             new_string = temp
 
-            return f"{new_prefix}{new_string}"
+            return f'{new_prefix}{new_string}'
         else:
             return string
 
@@ -4181,7 +4181,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         if string_idx is not None:
             string_value = line.leaves[string_idx].value
             # If the string has no spaces...
-            if " " not in string_value:
+            if ' ' not in string_value:
                 # And will still violate the line length limit when split...
                 max_string_length = self.line_length - ((line.depth + 1) * 4)
                 if len(string_value) > max_string_length:
@@ -4189,13 +4189,13 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
                     if not self.has_custom_splits(string_value):
                         # Then we should NOT put this string on its own line.
                         return TErr(
-                            "We do not wrap long strings in parentheses when the"
-                            " resultant line would still be over the specified line"
+                            'We do not wrap long strings in parentheses when the'
+                            ' resultant line would still be over the specified line'
                             " length and can't be split further by StringSplitter."
                         )
             return Ok(string_idx)
 
-        return TErr("This line does not contain any non-atomic strings.")
+        return TErr('This line does not contain any non-atomic strings.')
 
     @staticmethod
     def _return_match(LL: List[Leaf]) -> Optional[int]:
@@ -4212,7 +4212,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         # contains either the "return" or "yield" keywords...
         if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
             0
-        ].value in ["return", "yield"]:
+        ].value in ['return', 'yield']:
             is_valid_index = is_valid_index_factory(LL)
 
             idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
@@ -4238,7 +4238,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         if (
             parent_type(LL[0]) == syms.test
             and LL[0].type == token.NAME
-            and LL[0].value == "else"
+            and LL[0].value == 'else'
         ):
             is_valid_index = is_valid_index_factory(LL)
 
@@ -4262,7 +4262,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         """
         # If this line is apart of an assert statement and the first leaf
         # contains the "assert" keyword...
-        if parent_type(LL[0]) == syms.assert_stmt and LL[0].value == "assert":
+        if parent_type(LL[0]) == syms.assert_stmt and LL[0].value == 'assert':
             is_valid_index = is_valid_index_factory(LL)
 
             for (i, leaf) in enumerate(LL):
@@ -4399,7 +4399,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
 
         append_leaves(first_line, line, left_leaves)
 
-        lpar_leaf = Leaf(token.LPAR, "(")
+        lpar_leaf = Leaf(token.LPAR, '(')
         if old_parens_exist:
             replace_child(LL[string_idx - 1], lpar_leaf)
         else:
@@ -4439,7 +4439,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
             if old_parens_exist:
                 assert (
                     right_leaves and right_leaves[-1].type == token.RPAR
-                ), "Apparently, old parentheses do NOT exist?!"
+                ), 'Apparently, old parentheses do NOT exist?!'
                 old_rpar_leaf = right_leaves.pop()
 
             append_leaves(string_line, line, right_leaves)
@@ -4450,7 +4450,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         last_line = line.clone()
         last_line.bracket_tracker = first_line.bracket_tracker
 
-        new_rpar_leaf = Leaf(token.RPAR, ")")
+        new_rpar_leaf = Leaf(token.RPAR, ')')
         if old_rpar_leaf is not None:
             replace_child(old_rpar_leaf, new_rpar_leaf)
         else:
@@ -4460,7 +4460,7 @@ class StringParenWrapper(CustomSplitMapMixin, BaseStringSplitter):
         # If the target string ended with a comma, we place this comma to the
         # right of the RPAR on the last line.
         if ends_with_comma:
-            comma_leaf = Leaf(token.COMMA, ",")
+            comma_leaf = Leaf(token.COMMA, ',')
             replace_child(LL[comma_idx], comma_leaf)
             last_line.append(comma_leaf)
 
@@ -4601,7 +4601,7 @@ class StringParser:
                 # If no default has been assigned, then this parser has a logic
                 # error.
                 else:
-                    raise RuntimeError(f"{self.__class__.__name__} LOGIC ERROR!")
+                    raise RuntimeError(f'{self.__class__.__name__} LOGIC ERROR!')
 
             if self._state == self.DONE:
                 return False
@@ -4626,7 +4626,7 @@ def contains_pragma_comment(comment_list: List[Leaf]) -> bool:
         pylint).
     """
     for comment in comment_list:
-        if comment.value.startswith(("# type:", "# noqa", "# pylint:")):
+        if comment.value.startswith(('# type:', '# noqa', '# pylint:')):
             return True
 
     return False
@@ -4720,11 +4720,11 @@ def is_empty_par(leaf: Leaf) -> bool:
 
 
 def is_empty_lpar(leaf: Leaf) -> bool:
-    return leaf.type == token.LPAR and leaf.value == ""
+    return leaf.type == token.LPAR and leaf.value == ''
 
 
 def is_empty_rpar(leaf: Leaf) -> bool:
-    return leaf.type == token.RPAR and leaf.value == ""
+    return leaf.type == token.RPAR and leaf.value == ''
 
 
 def is_valid_index_factory(seq: Sequence[Any]) -> Callable[[int], bool]:
@@ -4759,7 +4759,7 @@ def line_to_string(line: Line) -> str:
 
     WARNING: This is known to be computationally expensive.
     """
-    return str(line).strip("\n")
+    return str(line).strip('\n')
 
 
 def append_leaves(
@@ -4813,7 +4813,7 @@ def get_string_prefix(string: str) -> str:
     """
     assert_is_leaf_string(string)
 
-    prefix = ""
+    prefix = ''
     prefix_idx = 0
     while string[prefix_idx] in STRING_PREFIX_CHARS:
         prefix += string[prefix_idx].lower()
@@ -4847,14 +4847,14 @@ def assert_is_leaf_string(string: str) -> None:
 
     assert (
         0 <= quote_idx < len(string) - 1
-    ), f"{string!r} is missing a starting quote character (' or \")."
+    ), f'{string!r} is missing a starting quote character (\' or ").'
     assert string[-1] in (
         "'",
         '"',
-    ), f"{string!r} is missing an ending quote character (' or \")."
+    ), f'{string!r} is missing an ending quote character (\' or ").'
     assert set(string[:quote_idx]).issubset(
         set(STRING_PREFIX_CHARS)
-    ), f"{set(string[:quote_idx])} is NOT a subset of {set(STRING_PREFIX_CHARS)}."
+    ), f'{set(string[:quote_idx])} is NOT a subset of {set(STRING_PREFIX_CHARS)}.'
 
 
 def left_hand_split(line: Line, _features: Collection[Feature] = ()) -> Iterator[Line]:
@@ -4882,7 +4882,7 @@ def left_hand_split(line: Line, _features: Collection[Feature] = ()) -> Iterator
                 matching_bracket = leaf
                 current_leaves = body_leaves
     if not matching_bracket:
-        raise CannotSplit("No brackets found")
+        raise CannotSplit('No brackets found')
 
     head = bracket_split_build_line(head_leaves, line, matching_bracket)
     body = bracket_split_build_line(body_leaves, line, matching_bracket, is_body=True)
@@ -4927,7 +4927,7 @@ def right_hand_split(
         # If there is no opening or closing_bracket that means the split failed and
         # all content is in the tail.  Otherwise, if `head_leaves` are empty, it means
         # the matching `opening_bracket` wasn't available on `line` anymore.
-        raise CannotSplit("No brackets found")
+        raise CannotSplit('No brackets found')
 
     tail_leaves.reverse()
     body_leaves.reverse()
@@ -4968,10 +4968,10 @@ def right_hand_split(
 
             elif head.contains_multiline_strings() or tail.contains_multiline_strings():
                 raise CannotSplit(
-                    "The current optional pair of parentheses is bound to fail to"
-                    " satisfy the splitting algorithm because the head or the tail"
-                    " contains multiline strings which by definition never fit one"
-                    " line."
+                    'The current optional pair of parentheses is bound to fail to'
+                    ' satisfy the splitting algorithm because the head or the tail'
+                    ' contains multiline strings which by definition never fit one'
+                    ' line.'
                 )
 
     ensure_visible(opening_bracket)
@@ -4998,12 +4998,12 @@ def bracket_split_succeeded_or_raise(head: Line, body: Line, tail: Line) -> None
     tail_len = len(str(tail).strip())
     if not body:
         if tail_len == 0:
-            raise CannotSplit("Splitting brackets produced the same line")
+            raise CannotSplit('Splitting brackets produced the same line')
 
         elif tail_len < 3:
             raise CannotSplit(
-                f"Splitting brackets on an empty body to save {tail_len} characters is"
-                " not worth it"
+                f'Splitting brackets on an empty body to save {tail_len} characters is'
+                ' not worth it'
             )
 
 
@@ -5026,7 +5026,7 @@ def bracket_split_build_line(
             # be careful not to add one after any comments or within type annotations.
             no_commas = (
                 original.is_def
-                and opening_bracket.value == "("
+                and opening_bracket.value == '('
                 and not any(leaf.type == token.COMMA for leaf in leaves)
             )
 
@@ -5036,7 +5036,7 @@ def bracket_split_build_line(
                         continue
 
                     if leaves[i].type != token.COMMA:
-                        new_comma = Leaf(token.COMMA, ",")
+                        new_comma = Leaf(token.COMMA, ',')
                         leaves.insert(i + 1, new_comma)
                     break
 
@@ -5075,17 +5075,17 @@ def delimiter_split(line: Line, features: Collection[Feature] = ()) -> Iterator[
     try:
         last_leaf = line.leaves[-1]
     except IndexError:
-        raise CannotSplit("Line empty")
+        raise CannotSplit('Line empty')
 
     bt = line.bracket_tracker
     try:
         delimiter_priority = bt.max_delimiter_priority(exclude={id(last_leaf)})
     except ValueError:
-        raise CannotSplit("No delimiters found")
+        raise CannotSplit('No delimiters found')
 
     if delimiter_priority == DOT_PRIORITY:
         if bt.delimiter_count_with_priority(delimiter_priority) == 1:
-            raise CannotSplit("Splitting a single attribute from its owner looks wrong")
+            raise CannotSplit('Splitting a single attribute from its owner looks wrong')
 
     current_line = Line(
         mode=line.mode, depth=line.depth, inside_brackets=line.inside_brackets
@@ -5137,7 +5137,7 @@ def delimiter_split(line: Line, features: Collection[Feature] = ()) -> Iterator[
             and current_line.leaves[-1].type != token.COMMA
             and current_line.leaves[-1].type != STANDALONE_COMMENT
         ):
-            new_comma = Leaf(token.COMMA, ",")
+            new_comma = Leaf(token.COMMA, ',')
             current_line.append(new_comma)
         yield current_line
 
@@ -5148,7 +5148,7 @@ def standalone_comment_split(
 ) -> Iterator[Line]:
     """Split standalone comments from the rest of the line."""
     if not line.contains_standalone_comments(0):
-        raise CannotSplit("Line does not have any standalone comments")
+        raise CannotSplit('Line does not have any standalone comments')
 
     current_line = Line(
         mode=line.mode, depth=line.depth, inside_brackets=line.inside_brackets
@@ -5185,18 +5185,18 @@ def is_import(leaf: Leaf) -> bool:
     return bool(
         t == token.NAME
         and (
-            (v == "import" and p and p.type == syms.import_name)
-            or (v == "from" and p and p.type == syms.import_from)
+            (v == 'import' and p and p.type == syms.import_name)
+            or (v == 'from' and p and p.type == syms.import_from)
         )
     )
 
 
-def is_type_comment(leaf: Leaf, suffix: str = "") -> bool:
+def is_type_comment(leaf: Leaf, suffix: str = '') -> bool:
     """Return True if the given leaf is a special comment.
     Only returns true for type comments for now."""
     t = leaf.type
     v = leaf.value
-    return t in {token.COMMENT, STANDALONE_COMMENT} and v.startswith("# type:" + suffix)
+    return t in {token.COMMENT, STANDALONE_COMMENT} and v.startswith('# type:' + suffix)
 
 
 def normalize_prefix(leaf: Leaf, *, inside_brackets: bool) -> None:
@@ -5206,15 +5206,15 @@ def normalize_prefix(leaf: Leaf, *, inside_brackets: bool) -> None:
     Note: don't use backslashes for formatting or you'll lose your voting rights.
     """
     if not inside_brackets:
-        spl = leaf.prefix.split("#")
-        if "\\" not in spl[0]:
-            nl_count = spl[-1].count("\n")
+        spl = leaf.prefix.split('#')
+        if '\\' not in spl[0]:
+            nl_count = spl[-1].count('\n')
             if len(spl) > 1:
                 nl_count -= 1
-            leaf.prefix = "\n" * nl_count
+            leaf.prefix = '\n' * nl_count
             return
 
-    leaf.prefix = ""
+    leaf.prefix = ''
 
 
 def normalize_string_prefix(leaf: Leaf, remove_u_prefix: bool = False) -> None:
@@ -5224,13 +5224,13 @@ def normalize_string_prefix(leaf: Leaf, remove_u_prefix: bool = False) -> None:
 
     Note: Mutates its argument.
     """
-    match = re.match(r"^([" + STRING_PREFIX_CHARS + r"]*)(.*)$", leaf.value, re.DOTALL)
-    assert match is not None, f"failed to match string {leaf.value!r}"
+    match = re.match(r'^([' + STRING_PREFIX_CHARS + r']*)(.*)$', leaf.value, re.DOTALL)
+    assert match is not None, f'failed to match string {leaf.value!r}'
     orig_prefix = match.group(1)
-    new_prefix = orig_prefix.replace("F", "f").replace("B", "b").replace("U", "u")
+    new_prefix = orig_prefix.replace('F', 'f').replace('B', 'b').replace('U', 'u')
     if remove_u_prefix:
-        new_prefix = new_prefix.replace("u", "")
-    leaf.value = f"{new_prefix}{match.group(2)}"
+        new_prefix = new_prefix.replace('u', '')
+    leaf.value = f'{new_prefix}{match.group(2)}'
 
 
 def normalize_string_quotes(leaf: Leaf) -> None:
@@ -5259,11 +5259,11 @@ def normalize_string_quotes(leaf: Leaf) -> None:
         return  # There's an internal error
 
     prefix = leaf.value[:first_quote_pos]
-    unescaped_new_quote = re.compile(rf"(([^\\]|^)(\\\\)*){new_quote}")
-    escaped_new_quote = re.compile(rf"([^\\]|^)\\((?:\\\\)*){new_quote}")
-    escaped_orig_quote = re.compile(rf"([^\\]|^)\\((?:\\\\)*){orig_quote}")
+    unescaped_new_quote = re.compile(rf'(([^\\]|^)(\\\\)*){new_quote}')
+    escaped_new_quote = re.compile(rf'([^\\]|^)\\((?:\\\\)*){new_quote}')
+    escaped_orig_quote = re.compile(rf'([^\\]|^)\\((?:\\\\)*){orig_quote}')
     body = leaf.value[first_quote_pos + len(orig_quote) : -len(orig_quote)]
-    if "r" in prefix.casefold():
+    if 'r' in prefix.casefold():
         if unescaped_new_quote.search(body):
             # There's at least one unescaped new_quote in this raw string
             # so converting is impossible
@@ -5273,14 +5273,14 @@ def normalize_string_quotes(leaf: Leaf) -> None:
         new_body = body
     else:
         # remove unnecessary escapes
-        new_body = sub_twice(escaped_new_quote, rf"\1\2{new_quote}", body)
+        new_body = sub_twice(escaped_new_quote, rf'\1\2{new_quote}', body)
         if body != new_body:
             # Consider the string without unnecessary escapes as the original
             body = new_body
-            leaf.value = f"{prefix}{orig_quote}{body}{orig_quote}"
-        new_body = sub_twice(escaped_orig_quote, rf"\1\2{orig_quote}", new_body)
-        new_body = sub_twice(unescaped_new_quote, rf"\1\\{new_quote}", new_body)
-    if "f" in prefix.casefold():
+            leaf.value = f'{prefix}{orig_quote}{body}{orig_quote}'
+        new_body = sub_twice(escaped_orig_quote, rf'\1\2{orig_quote}', new_body)
+        new_body = sub_twice(unescaped_new_quote, rf'\1\\{new_quote}', new_body)
+    if 'f' in prefix.casefold():
         matches = re.findall(
             r"""
             (?:[^{]|^)\{  # start of the string or a non-{ followed by a single {
@@ -5291,22 +5291,22 @@ def normalize_string_quotes(leaf: Leaf) -> None:
             re.VERBOSE,
         )
         for m in matches:
-            if "\\" in str(m):
+            if '\\' in str(m):
                 # Do not introduce backslashes in interpolated expressions
                 return
 
     if new_quote == '"""' and new_body[-1:] == '"':
         # edge case:
         new_body = new_body[:-1] + '\\"'
-    orig_escape_count = body.count("\\")
-    new_escape_count = new_body.count("\\")
+    orig_escape_count = body.count('\\')
+    new_escape_count = new_body.count('\\')
     if new_escape_count > orig_escape_count:
         return  # Do not introduce more escaping
 
     if new_escape_count == orig_escape_count and orig_quote == "'":
         return  # Prefer single quotes
 
-    leaf.value = f"{prefix}{new_quote}{new_body}{new_quote}"
+    leaf.value = f'{prefix}{new_quote}{new_body}{new_quote}'
 
 
 def normalize_numeric_literal(leaf: Leaf) -> None:
@@ -5316,14 +5316,14 @@ def normalize_numeric_literal(leaf: Leaf) -> None:
     in Python 2 long literals).
     """
     text = leaf.value.lower()
-    if text.startswith(("0o", "0b")):
+    if text.startswith(('0o', '0b')):
         # Leave octal and binary literals alone.
         pass
-    elif text.startswith("0x"):
+    elif text.startswith('0x'):
         text = format_hex(text)
-    elif "e" in text:
+    elif 'e' in text:
         text = format_scientific_notation(text)
-    elif text.endswith(("j", "l")):
+    elif text.endswith(('j', 'l')):
         text = format_long_or_complex_number(text)
     else:
         text = format_float_or_int_string(text)
@@ -5340,20 +5340,20 @@ def format_hex(text: str) -> str:
     """
 
     before, after = text[:2], text[2:]
-    return f"{before}{after.lower()}"
+    return f'{before}{after.lower()}'
 
 
 def format_scientific_notation(text: str) -> str:
     """Formats a numeric string utilizing scentific notation"""
-    before, after = text.split("e")
-    sign = ""
-    if after.startswith("-"):
+    before, after = text.split('e')
+    sign = ''
+    if after.startswith('-'):
         after = after[1:]
-        sign = "-"
-    elif after.startswith("+"):
+        sign = '-'
+    elif after.startswith('+'):
         after = after[1:]
     before = format_float_or_int_string(before)
-    return f"{before}e{sign}{after}"
+    return f'{before}e{sign}{after}'
 
 
 def format_long_or_complex_number(text: str) -> str:
@@ -5361,18 +5361,18 @@ def format_long_or_complex_number(text: str) -> str:
     number = text[:-1]
     suffix = text[-1]
     # Capitalize in "2L" because "l" looks too similar to "1".
-    if suffix == "l":
-        suffix = "L"
-    return f"{format_float_or_int_string(number)}{suffix}"
+    if suffix == 'l':
+        suffix = 'L'
+    return f'{format_float_or_int_string(number)}{suffix}'
 
 
 def format_float_or_int_string(text: str) -> str:
     """Formats a float string like "1.0"."""
-    if "." not in text:
+    if '.' not in text:
         return text
 
-    before, after = text.split(".")
-    return f"{before or 0}.{after or 0}"
+    before, after = text.split('.')
+    return f'{before or 0}.{after or 0}'
 
 
 def normalize_invisible_parens(node: Node, parens_after: Set[str]) -> None:
@@ -5414,12 +5414,12 @@ def normalize_invisible_parens(node: Node, parens_after: Set[str]) -> None:
                 # the statement
                 if child.type == token.LPAR:
                     # make parentheses invisible
-                    child.value = ""  # type: ignore
-                    node.children[-1].value = ""  # type: ignore
+                    child.value = ''  # type: ignore
+                    node.children[-1].value = ''  # type: ignore
                 elif child.type != token.STAR:
                     # insert invisible parentheses
-                    node.insert_child(index, Leaf(token.LPAR, ""))
-                    node.append_child(Leaf(token.RPAR, ""))
+                    node.insert_child(index, Leaf(token.LPAR, ''))
+                    node.append_child(Leaf(token.RPAR, ''))
                 break
 
             elif not (isinstance(child, Leaf) and is_multiline_string(child)):
@@ -5465,12 +5465,12 @@ def convert_one_fmt_off_pair(node: Node) -> bool:
             parent = first.parent
             prefix = first.prefix
             first.prefix = prefix[comment.consumed :]
-            hidden_value = "".join(str(n) for n in ignored_nodes)
+            hidden_value = ''.join(str(n) for n in ignored_nodes)
             if comment.value in FMT_OFF:
-                hidden_value = comment.value + "\n" + hidden_value
+                hidden_value = comment.value + '\n' + hidden_value
             if comment.value in FMT_SKIP:
-                hidden_value += "  " + comment.value
-            if hidden_value.endswith("\n"):
+                hidden_value += '  ' + comment.value
+            if hidden_value.endswith('\n'):
                 # That happens when one of the `ignored_nodes` ended with a NEWLINE
                 # leaf (possibly followed by a DEDENT).
                 hidden_value = hidden_value[:-1]
@@ -5479,14 +5479,14 @@ def convert_one_fmt_off_pair(node: Node) -> bool:
                 index = ignored.remove()
                 if first_idx is None:
                     first_idx = index
-            assert parent is not None, "INTERNAL ERROR: fmt: on/off handling (1)"
-            assert first_idx is not None, "INTERNAL ERROR: fmt: on/off handling (2)"
+            assert parent is not None, 'INTERNAL ERROR: fmt: on/off handling (1)'
+            assert first_idx is not None, 'INTERNAL ERROR: fmt: on/off handling (2)'
             parent.insert_child(
                 first_idx,
                 Leaf(
                     STANDALONE_COMMENT,
                     hidden_value,
-                    prefix=prefix[:previous_consumed] + "\n" * comment.newlines,
+                    prefix=prefix[:previous_consumed] + '\n' * comment.newlines,
                 ),
             )
             return True
@@ -5504,10 +5504,10 @@ def generate_ignored_nodes(leaf: Leaf, comment: ProtoComment) -> Iterator[LN]:
     if comment.value in FMT_SKIP:
         prev_sibling = leaf.prev_sibling
         if comment.value in leaf.prefix and prev_sibling is not None:
-            leaf.prefix = leaf.prefix.replace(comment.value, "")
+            leaf.prefix = leaf.prefix.replace(comment.value, '')
             siblings = [prev_sibling]
             while (
-                "\n" not in prev_sibling.prefix
+                '\n' not in prev_sibling.prefix
                 and prev_sibling.prev_sibling is not None
             ):
                 prev_sibling = prev_sibling.prev_sibling
@@ -5595,8 +5595,8 @@ def maybe_make_parens_invisible_in_atom(node: LN, parent: LN) -> bool:
     if first.type == token.LPAR and last.type == token.RPAR:
         middle = node.children[1]
         # make parentheses invisible
-        first.value = ""  # type: ignore
-        last.value = ""  # type: ignore
+        first.value = ''  # type: ignore
+        last.value = ''  # type: ignore
         maybe_make_parens_invisible_in_atom(middle, parent=parent)
 
         if is_atom_with_invisible_parens(middle):
@@ -5620,10 +5620,10 @@ def is_atom_with_invisible_parens(node: LN) -> bool:
     return (
         isinstance(first, Leaf)
         and first.type == token.LPAR
-        and first.value == ""
+        and first.value == ''
         and isinstance(last, Leaf)
         and last.type == token.RPAR
-        and last.value == ""
+        and last.value == ''
     )
 
 
@@ -5670,10 +5670,10 @@ def wrap_in_parentheses(parent: Node, child: LN, *, visible: bool = True) -> Non
 
     If `visible` is False, the leaves will be valueless (and thus invisible).
     """
-    lpar = Leaf(token.LPAR, "(" if visible else "")
-    rpar = Leaf(token.RPAR, ")" if visible else "")
+    lpar = Leaf(token.LPAR, '(' if visible else '')
+    rpar = Leaf(token.RPAR, ')' if visible else '')
     prefix = child.prefix
-    child.prefix = ""
+    child.prefix = ''
     index = child.remove() or 0
     new_child = Node(syms.atom, [lpar, child, rpar])
     new_child.prefix = prefix
@@ -5750,7 +5750,7 @@ def is_yield(node: LN) -> bool:
     if node.type == syms.yield_expr:
         return True
 
-    if node.type == token.NAME and node.value == "yield":  # type: ignore
+    if node.type == token.NAME and node.value == 'yield':  # type: ignore
         return True
 
     if node.type != syms.atom:
@@ -5791,7 +5791,7 @@ def is_vararg(leaf: Leaf, within: Set[NodeType]) -> bool:
 
 def is_multiline_string(leaf: Leaf) -> bool:
     """Return True if `leaf` is a multiline string that actually spans many lines."""
-    return has_triple_quotes(leaf.value) and "\n" in leaf.value
+    return has_triple_quotes(leaf.value) and '\n' in leaf.value
 
 
 def is_stub_suite(node: Node) -> bool:
@@ -5819,7 +5819,7 @@ def is_stub_body(node: LN) -> bool:
     return (
         child.type == syms.atom
         and len(child.children) == 3
-        and all(leaf == Leaf(token.DOT, ".") for leaf in child.children)
+        and all(leaf == Leaf(token.DOT, '.') for leaf in child.children)
     )
 
 
@@ -5858,15 +5858,15 @@ def ensure_visible(leaf: Leaf) -> None:
     :func:`normalize_invisible_parens` and :func:`visit_import_from`).
     """
     if leaf.type == token.LPAR:
-        leaf.value = "("
+        leaf.value = '('
     elif leaf.type == token.RPAR:
-        leaf.value = ")"
+        leaf.value = ')'
 
 
 def should_split_line(line: Line, opening_bracket: Leaf) -> bool:
     """Should `line` be immediately split with `delimiter_split()` after RHS?"""
 
-    if not (opening_bracket.parent and opening_bracket.value in "[{("):
+    if not (opening_bracket.parent and opening_bracket.value in '[{('):
         return False
 
     # We're essentially checking if the body is delimited by commas and there's more
@@ -5901,7 +5901,7 @@ def is_one_tuple_between(opening: Leaf, closing: Leaf, leaves: List[Leaf]) -> bo
             break
 
     else:
-        raise LookupError("Opening paren not found in `leaves`")
+        raise LookupError('Opening paren not found in `leaves`')
 
     commas = 0
     _opening_index += 1
@@ -5937,11 +5937,11 @@ def get_features_used(node: Node) -> Set[Feature]:
     for n in node.pre_order():
         if n.type == token.STRING:
             value_head = n.value[:2]  # type: ignore
-            if value_head in {'f"', 'F"', "f'", "F'", "rf", "fr", "RF", "FR"}:
+            if value_head in {'f"', 'F"', "f'", "F'", 'rf', 'fr', 'RF', 'FR'}:
                 features.add(Feature.F_STRINGS)
 
         elif n.type == token.NUMBER:
-            if "_" in n.value:  # type: ignore
+            if '_' in n.value:  # type: ignore
                 features.add(Feature.NUMERIC_UNDERSCORES)
 
         elif n.type == token.SLASH:
@@ -6073,15 +6073,15 @@ def get_future_imports(node: Node) -> Set[str]:
 
             elif child.type == syms.import_as_name:
                 orig_name = child.children[0]
-                assert isinstance(orig_name, Leaf), "Invalid syntax parsing imports"
-                assert orig_name.type == token.NAME, "Invalid syntax parsing imports"
+                assert isinstance(orig_name, Leaf), 'Invalid syntax parsing imports'
+                assert orig_name.type == token.NAME, 'Invalid syntax parsing imports'
                 yield orig_name.value
 
             elif child.type == syms.import_as_names:
                 yield from get_imports_from_children(child.children)
 
             else:
-                raise AssertionError("Invalid syntax parsing imports")
+                raise AssertionError('Invalid syntax parsing imports')
 
     for child in node.children:
         if child.type != syms.simple_stmt:
@@ -6101,7 +6101,7 @@ def get_future_imports(node: Node) -> Set[str]:
 
         elif first_child.type == syms.import_from:
             module_name = first_child.children[1]
-            if not isinstance(module_name, Leaf) or module_name.value != "__future__":
+            if not isinstance(module_name, Leaf) or module_name.value != '__future__':
                 break
 
             imports |= set(get_imports_from_children(first_child.children[3:]))
@@ -6114,16 +6114,16 @@ def get_future_imports(node: Node) -> Set[str]:
 @lru_cache()
 def get_gitignore(root: Path) -> PathSpec:
     """ Return a PathSpec matching gitignore content if present."""
-    gitignore = root / ".gitignore"
+    gitignore = root / '.gitignore'
     lines: List[str] = []
     if gitignore.is_file():
         with gitignore.open() as gf:
             lines = gf.readlines()
-    return PathSpec.from_lines("gitwildmatch", lines)
+    return PathSpec.from_lines('gitwildmatch', lines)
 
 
 def normalize_path_maybe_ignore(
-    path: Path, root: Path, report: "Report"
+    path: Path, root: Path, report: 'Report'
 ) -> Optional[str]:
     """Normalize `path`. May return `None` if `path` was ignored.
 
@@ -6133,12 +6133,12 @@ def normalize_path_maybe_ignore(
         abspath = path if path.is_absolute() else Path.cwd() / path
         normalized_path = abspath.resolve().relative_to(root).as_posix()
     except OSError as e:
-        report.path_ignored(path, f"cannot be read because {e}")
+        report.path_ignored(path, f'cannot be read because {e}')
         return None
 
     except ValueError:
         if path.is_symlink():
-            report.path_ignored(path, f"is a symbolic link that points outside {root}")
+            report.path_ignored(path, f'is a symbolic link that points outside {root}')
             return None
 
         raise
@@ -6161,7 +6161,7 @@ def gen_python_files(
     exclude: Pattern[str],
     extend_exclude: Optional[Pattern[str]],
     force_exclude: Optional[Pattern[str]],
-    report: "Report",
+    report: 'Report',
     gitignore: PathSpec,
 ) -> Iterator[Path]:
     """Generate all files under `path` whose paths are not excluded by the
@@ -6172,7 +6172,7 @@ def gen_python_files(
 
     `report` is where output about exclusions goes.
     """
-    assert root.is_absolute(), f"INTERNAL ERROR: `root` must be absolute but is {root}"
+    assert root.is_absolute(), f'INTERNAL ERROR: `root` must be absolute but is {root}'
     for child in paths:
         normalized_path = normalize_path_maybe_ignore(child, root, report)
         if normalized_path is None:
@@ -6180,26 +6180,26 @@ def gen_python_files(
 
         # First ignore files matching .gitignore
         if gitignore.match_file(normalized_path):
-            report.path_ignored(child, "matches the .gitignore file content")
+            report.path_ignored(child, 'matches the .gitignore file content')
             continue
 
         # Then ignore with `--exclude` `--extend-exclude` and `--force-exclude` options.
-        normalized_path = "/" + normalized_path
+        normalized_path = '/' + normalized_path
         if child.is_dir():
-            normalized_path += "/"
+            normalized_path += '/'
 
         if path_is_excluded(normalized_path, exclude):
-            report.path_ignored(child, "matches the --exclude regular expression")
+            report.path_ignored(child, 'matches the --exclude regular expression')
             continue
 
         if path_is_excluded(normalized_path, extend_exclude):
             report.path_ignored(
-                child, "matches the --extend-exclude regular expression"
+                child, 'matches the --extend-exclude regular expression'
             )
             continue
 
         if path_is_excluded(normalized_path, force_exclude):
-            report.path_ignored(child, "matches the --force-exclude regular expression")
+            report.path_ignored(child, 'matches the --force-exclude regular expression')
             continue
 
         if child.is_dir():
@@ -6231,7 +6231,7 @@ def find_project_root(srcs: Tuple[str, ...]) -> Path:
     project root, the root of the file system is returned.
     """
     if not srcs:
-        return Path("/").resolve()
+        return Path('/').resolve()
 
     path_srcs = [Path(Path.cwd(), src).resolve() for src in srcs]
 
@@ -6247,13 +6247,13 @@ def find_project_root(srcs: Tuple[str, ...]) -> Path:
     )
 
     for directory in (common_base, *common_base.parents):
-        if (directory / ".git").exists():
+        if (directory / '.git').exists():
             return directory
 
-        if (directory / ".hg").is_dir():
+        if (directory / '.hg').is_dir():
             return directory
 
-        if (directory / "pyproject.toml").is_file():
+        if (directory / 'pyproject.toml').is_file():
             return directory
 
     return directory
@@ -6266,12 +6266,12 @@ def find_user_pyproject_toml() -> Path:
     This looks for ~\.black on Windows and ~/.config/black on Linux and other
     Unix systems.
     """
-    if sys.platform == "win32":
+    if sys.platform == 'win32':
         # Windows
-        user_config_path = Path.home() / ".black"
+        user_config_path = Path.home() / '.black'
     else:
-        config_root = os.environ.get("XDG_CONFIG_HOME", "~/.config")
-        user_config_path = Path(config_root).expanduser() / "black"
+        config_root = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+        user_config_path = Path(config_root).expanduser() / 'black'
     return user_config_path.resolve()
 
 
@@ -6290,14 +6290,14 @@ class Report:
     def done(self, src: Path, changed: Changed) -> None:
         """Increment the counter for successful reformatting. Write out a message."""
         if changed is Changed.YES:
-            reformatted = "would reformat" if self.check or self.diff else "reformatted"
+            reformatted = 'would reformat' if self.check or self.diff else 'reformatted'
             if self.verbose or not self.quiet:
-                out(f"{reformatted} {src}")
+                out(f'{reformatted} {src}')
             self.change_count += 1
         else:
             if self.verbose:
                 if changed is Changed.NO:
-                    msg = f"{src} already well formatted, good job."
+                    msg = f'{src} already well formatted, good job.'
                 else:
                     msg = f"{src} wasn't modified on disk since last run."
                 out(msg, bold=False)
@@ -6305,12 +6305,12 @@ class Report:
 
     def failed(self, src: Path, message: str) -> None:
         """Increment the counter for failed reformatting. Write out a message."""
-        err(f"error: cannot format {src}: {message}")
+        err(f'error: cannot format {src}: {message}')
         self.failure_count += 1
 
     def path_ignored(self, path: Path, message: str) -> None:
         if self.verbose:
-            out(f"{path} ignored: {message}", bold=False)
+            out(f'{path} ignored: {message}', bold=False)
 
     @property
     def return_code(self) -> int:
@@ -6337,32 +6337,32 @@ class Report:
         Use `click.unstyle` to remove colors.
         """
         if self.check or self.diff:
-            reformatted = "would be reformatted"
-            unchanged = "would be left unchanged"
-            failed = "would fail to reformat"
+            reformatted = 'would be reformatted'
+            unchanged = 'would be left unchanged'
+            failed = 'would fail to reformat'
         else:
-            reformatted = "reformatted"
-            unchanged = "left unchanged"
-            failed = "failed to reformat"
+            reformatted = 'reformatted'
+            unchanged = 'left unchanged'
+            failed = 'failed to reformat'
         report = []
         if self.change_count:
-            s = "s" if self.change_count > 1 else ""
+            s = 's' if self.change_count > 1 else ''
             report.append(
-                click.style(f"{self.change_count} file{s} {reformatted}", bold=True)
+                click.style(f'{self.change_count} file{s} {reformatted}', bold=True)
             )
         if self.same_count:
-            s = "s" if self.same_count > 1 else ""
-            report.append(f"{self.same_count} file{s} {unchanged}")
+            s = 's' if self.same_count > 1 else ''
+            report.append(f'{self.same_count} file{s} {unchanged}')
         if self.failure_count:
-            s = "s" if self.failure_count > 1 else ""
+            s = 's' if self.failure_count > 1 else ''
             report.append(
-                click.style(f"{self.failure_count} file{s} {failed}", fg="red")
+                click.style(f'{self.failure_count} file{s} {failed}', fg='red')
             )
-        return ", ".join(report) + "."
+        return ', '.join(report) + '.'
 
 
 def parse_ast(src: str) -> Union[ast.AST, ast3.AST, ast27.AST]:
-    filename = "<unknown>"
+    filename = '<unknown>'
     if sys.version_info >= (3, 8):
         # TODO: support Python 4+ ;)
         for minor_version in range(sys.version_info[1], 4, -1):
@@ -6376,10 +6376,10 @@ def parse_ast(src: str) -> Union[ast.AST, ast3.AST, ast27.AST]:
                 return ast3.parse(src, filename, feature_version=feature_version)
             except SyntaxError:
                 continue
-    if ast27.__name__ == "ast":
+    if ast27.__name__ == 'ast':
         raise SyntaxError(
-            "The requested source code has invalid Python 3 syntax.\n"
-            "If you are trying to format Python 2 files please reinstall Black"
+            'The requested source code has invalid Python 3 syntax.\n'
+            'If you are trying to format Python 2 files please reinstall Black'
             " with the 'python2' extra: `python3 -m pip install black[python2]`."
         )
     return ast27.parse(src)
@@ -6430,7 +6430,7 @@ def _stringify_ast(
                 # Ignore nested tuples within del statements, because we may insert
                 # parentheses and they change the AST.
                 if (
-                    field == "targets"
+                    field == 'targets'
                     and isinstance(node, (ast.Delete, ast3.Delete, ast27.Delete))
                     and isinstance(item, (ast.Tuple, ast3.Tuple, ast27.Tuple))
                 ):
@@ -6449,10 +6449,10 @@ def _stringify_ast(
             # trailing and leading space may be removed.
             if (
                 isinstance(node, ast.Constant)
-                and field == "value"
+                and field == 'value'
                 and isinstance(value, str)
             ):
-                normalized = re.sub(r" *\n[ \t]*", "\n", value).strip()
+                normalized = re.sub(r' *\n[ \t]*', '\n', value).strip()
             else:
                 normalized = value
             yield f"{'  ' * (depth+2)}{normalized!r},  # {value.__class__.__name__}"
@@ -6466,28 +6466,28 @@ def assert_equivalent(src: str, dst: str) -> None:
         src_ast = parse_ast(src)
     except Exception as exc:
         raise AssertionError(
-            "cannot use --safe with this file; failed to parse source file.  AST"
-            f" error message: {exc}"
+            'cannot use --safe with this file; failed to parse source file.  AST'
+            f' error message: {exc}'
         )
 
     try:
         dst_ast = parse_ast(dst)
     except Exception as exc:
-        log = dump_to_file("".join(traceback.format_tb(exc.__traceback__)), dst)
+        log = dump_to_file(''.join(traceback.format_tb(exc.__traceback__)), dst)
         raise AssertionError(
-            f"INTERNAL ERROR: Black produced invalid code: {exc}. Please report a bug"
-            " on https://github.com/psf/black/issues.  This invalid output might be"
-            f" helpful: {log}"
+            f'INTERNAL ERROR: Black produced invalid code: {exc}. Please report a bug'
+            ' on https://github.com/psf/black/issues.  This invalid output might be'
+            f' helpful: {log}'
         ) from None
 
-    src_ast_str = "\n".join(_stringify_ast(src_ast))
-    dst_ast_str = "\n".join(_stringify_ast(dst_ast))
+    src_ast_str = '\n'.join(_stringify_ast(src_ast))
+    dst_ast_str = '\n'.join(_stringify_ast(dst_ast))
     if src_ast_str != dst_ast_str:
-        log = dump_to_file(diff(src_ast_str, dst_ast_str, "src", "dst"))
+        log = dump_to_file(diff(src_ast_str, dst_ast_str, 'src', 'dst'))
         raise AssertionError(
-            "INTERNAL ERROR: Black produced code that is not equivalent to the"
-            " source.  Please report a bug on https://github.com/psf/black/issues. "
-            f" This diff might be helpful: {log}"
+            'INTERNAL ERROR: Black produced code that is not equivalent to the'
+            ' source.  Please report a bug on https://github.com/psf/black/issues. '
+            f' This diff might be helpful: {log}'
         ) from None
 
 
@@ -6497,13 +6497,13 @@ def assert_stable(src: str, dst: str, mode: Mode) -> None:
     if dst != newdst:
         log = dump_to_file(
             str(mode),
-            diff(src, dst, "source", "first pass"),
-            diff(dst, newdst, "first pass", "second pass"),
+            diff(src, dst, 'source', 'first pass'),
+            diff(dst, newdst, 'first pass', 'second pass'),
         )
         raise AssertionError(
-            "INTERNAL ERROR: Black produced different code on the second pass of the"
-            " formatter.  Please report a bug on https://github.com/psf/black/issues."
-            f"  This diff might be helpful: {log}"
+            'INTERNAL ERROR: Black produced different code on the second pass of the'
+            ' formatter.  Please report a bug on https://github.com/psf/black/issues.'
+            f'  This diff might be helpful: {log}'
         ) from None
 
 
@@ -6511,12 +6511,12 @@ def assert_stable(src: str, dst: str, mode: Mode) -> None:
 def dump_to_file(*output: str, ensure_final_newline: bool = True) -> str:
     """Dump `output` to a temporary file. Return path to the file."""
     with tempfile.NamedTemporaryFile(
-        mode="w", prefix="blk_", suffix=".log", delete=False, encoding="utf8"
+        mode='w', prefix='blk_', suffix='.log', delete=False, encoding='utf8'
     ) as f:
         for lines in output:
             f.write(lines)
-            if ensure_final_newline and lines and lines[-1] != "\n":
-                f.write("\n")
+            if ensure_final_newline and lines and lines[-1] != '\n':
+                f.write('\n')
     return f.name
 
 
@@ -6541,17 +6541,17 @@ def diff(a: str, b: str, a_name: str, b_name: str) -> str:
     ):
         # Work around https://bugs.python.org/issue2142
         # See https://www.gnu.org/software/diffutils/manual/html_node/Incomplete-Lines.html
-        if line[-1] == "\n":
+        if line[-1] == '\n':
             diff_lines.append(line)
         else:
-            diff_lines.append(line + "\n")
-            diff_lines.append("\\ No newline at end of file\n")
-    return "".join(diff_lines)
+            diff_lines.append(line + '\n')
+            diff_lines.append('\\ No newline at end of file\n')
+    return ''.join(diff_lines)
 
 
-def cancel(tasks: Iterable["asyncio.Task[Any]"]) -> None:
+def cancel(tasks: Iterable['asyncio.Task[Any]']) -> None:
     """asyncio signal handler that cancels all `tasks` and reports to stderr."""
-    err("Aborted!")
+    err('Aborted!')
     for task in tasks:
         task.cancel()
 
@@ -6577,7 +6577,7 @@ def shutdown(loop: asyncio.AbstractEventLoop) -> None:
         # `concurrent.futures.Future` objects cannot be cancelled once they
         # are already running. There might be some when the `shutdown()` happened.
         # Silence their logger's spew about the event loop being closed.
-        cf_logger = logging.getLogger("concurrent.futures")
+        cf_logger = logging.getLogger('concurrent.futures')
         cf_logger.setLevel(logging.CRITICAL)
         loop.close()
 
@@ -6596,8 +6596,8 @@ def re_compile_maybe_verbose(regex: str) -> Pattern[str]:
 
     If it contains newlines, use verbose mode.
     """
-    if "\n" in regex:
-        regex = "(?x)" + regex
+    if '\n' in regex:
+        regex = '(?x)' + regex
     compiled: Pattern[str] = re.compile(regex)
     return compiled
 
@@ -6623,7 +6623,7 @@ def enumerate_with_length(
     )
     for index, leaf in op(line.leaves):
         length = len(leaf.prefix) + len(leaf.value)
-        if "\n" in leaf.value:
+        if '\n' in leaf.value:
             return  # Multiline strings, we can't continue.
 
         for comment in line.comments_after(leaf):
@@ -6632,7 +6632,7 @@ def enumerate_with_length(
         yield index, leaf, length
 
 
-def is_line_short_enough(line: Line, *, line_length: int, line_str: str = "") -> bool:
+def is_line_short_enough(line: Line, *, line_length: int, line_str: str = '') -> bool:
     """Return True if `line` is no longer than `line_length`.
 
     Uses the provided `line_str` rendering, if any, otherwise computes a new one.
@@ -6641,7 +6641,7 @@ def is_line_short_enough(line: Line, *, line_length: int, line_str: str = "") ->
         line_str = line_to_string(line)
     return (
         len(line_str) <= line_length
-        and "\n" not in line_str  # multiline strings
+        and '\n' not in line_str  # multiline strings
         and not line.contains_standalone_comments()
     )
 
@@ -6707,7 +6707,7 @@ def can_omit_invisible_parens(
         # A single stranded method call doesn't require optional parentheses.
         return True
 
-    assert len(line.leaves) >= 2, "Stranded delimiter"
+    assert len(line.leaves) >= 2, 'Stranded delimiter'
 
     # With a single delimiter, omit if the expression starts or ends with
     # a bracket.
@@ -6820,7 +6820,7 @@ def last_two_except(leaves: List[Leaf], omit: Collection[LeafID]) -> Tuple[Leaf,
         else:
             last = leaf
     else:
-        raise LookupError("Last two leaves were also skipped")
+        raise LookupError('Last two leaves were also skipped')
 
 
 def run_transformer(
@@ -6829,19 +6829,19 @@ def run_transformer(
     mode: Mode,
     features: Collection[Feature],
     *,
-    line_str: str = "",
+    line_str: str = '',
 ) -> List[Line]:
     if not line_str:
         line_str = line_to_string(line)
     result: List[Line] = []
     for transformed_line in transform(line, features):
-        if str(transformed_line).strip("\n") == line_str:
-            raise CannotTransform("Line transformer returned an unchanged result")
+        if str(transformed_line).strip('\n') == line_str:
+            raise CannotTransform('Line transformer returned an unchanged result')
 
         result.extend(transform_line(transformed_line, mode=mode, features=features))
 
     if not (
-        transform.__name__ == "rhs"
+        transform.__name__ == 'rhs'
         and line.bracket_tracker.invisible
         and not any(bracket.value for bracket in line.bracket_tracker.invisible)
         and not line.contains_multiline_strings()
@@ -6865,7 +6865,7 @@ def run_transformer(
 
 
 def get_cache_file(mode: Mode) -> Path:
-    return CACHE_DIR / f"cache.{mode.get_cache_key()}.pickle"
+    return CACHE_DIR / f'cache.{mode.get_cache_key()}.pickle'
 
 
 def read_cache(mode: Mode) -> Cache:
@@ -6877,7 +6877,7 @@ def read_cache(mode: Mode) -> Cache:
     if not cache_file.exists():
         return {}
 
-    with cache_file.open("rb") as fobj:
+    with cache_file.open('rb') as fobj:
         try:
             cache: Cache = pickle.load(fobj)
         except (pickle.UnpicklingError, ValueError):
@@ -6942,7 +6942,7 @@ def patch_click() -> None:
         return
 
     for module in (core, _unicodefun):
-        if hasattr(module, "_verify_python3_env"):
+        if hasattr(module, '_verify_python3_env'):
             module._verify_python3_env = lambda: None
 
 
@@ -6981,7 +6981,7 @@ def lines_with_leading_tabs_expanded(s: str) -> List[str]:
     for line in s.splitlines():
         # Find the index of the first non-whitespace character after a string of
         # whitespace that includes at least one tab
-        match = re.match(r"\s*\t+\s*(\S)", line)
+        match = re.match(r'\s*\t+\s*(\S)', line)
         if match:
             first_non_whitespace_idx = match.start(1)
 
@@ -6997,7 +6997,7 @@ def lines_with_leading_tabs_expanded(s: str) -> List[str]:
 def fix_docstring(docstring: str, prefix: str) -> str:
     # https://www.python.org/dev/peps/pep-0257/#handling-docstring-indentation
     if not docstring:
-        return ""
+        return ''
     lines = lines_with_leading_tabs_expanded(docstring)
     # Determine minimum indentation (first line doesn't count):
     indent = sys.maxsize
@@ -7014,9 +7014,9 @@ def fix_docstring(docstring: str, prefix: str) -> str:
             if stripped_line or i == last_line_idx:
                 trimmed.append(prefix + stripped_line)
             else:
-                trimmed.append("")
-    return "\n".join(trimmed)
+                trimmed.append('')
+    return '\n'.join(trimmed)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     patched_main()

@@ -39,7 +39,7 @@ def test_idempotent_any_syntatically_valid_python(
     src_contents: str, mode: black.FileMode
 ) -> None:
     # Before starting, let's confirm that the input string is valid Python:
-    compile(src_contents, "<string>", "exec")  # else the bug is in hypothesmith
+    compile(src_contents, '<string>', 'exec')  # else the bug is in hypothesmith
 
     # Then format the code...
     try:
@@ -51,8 +51,8 @@ def test_idempotent_any_syntatically_valid_python(
         return
     except TokenError as e:
         if (  # Special-case logic for backslashes followed by newlines or end-of-input
-            e.args[0] == "EOF in multi-line statement"
-            and re.search(r"\\($|\r?\n)", src_contents) is not None
+            e.args[0] == 'EOF in multi-line statement'
+            and re.search(r'\\($|\r?\n)', src_contents) is not None
         ):
             # This is a bug - if it's valid Python code, as above, Black should be
             # able to cope with it.  See issue #1012.
@@ -68,7 +68,7 @@ def test_idempotent_any_syntatically_valid_python(
     # give identical output for identical input?
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # Run tests, including shrinking and reporting any known failures.
     test_idempotent_any_syntatically_valid_python()
 
